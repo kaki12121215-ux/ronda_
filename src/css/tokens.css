@@ -1,0 +1,81 @@
+/* Ronda · diseño nuevo · valores aprobados. Ver 01_GUIA_DE_ESTILO.md.
+   Nombres: --c-<color>-<tono>. Tonos: b bloque, f claro, fo muy claro, t tinta, fu fuerte, ico icono sobre blanco.
+   --g-<color>-0/1/2 son los tres tonos del degradado de cabecera de cada sección. */
+:root {
+  /* texto */
+  --txt: #2B3A42; --txt2: #55646C; --txt-barra: #3A4951; --txt-tachado: #6F7D84; --txt-atrasada: #B5371F; --borde-atrasada: #C8402B;
+  --raya: rgba(43,58,66,.12); --fondo: #FFFFFF; --fondo-ajustes: #F7F8F9;
+  /* tipografía (tamaño fijo, no hay ajuste) */
+  --f-texto: Inter, system-ui, sans-serif; --f-titulo: 'Inter Display', Inter, system-ui, sans-serif;
+  --t-seccion: 36.5px; --t-interior: 33px; --t-saludo: 28px; --t-hoja: 21px; --t-grupo: 16.5px; --t-cifra: 30px; --t-cifra-peq: 22.5px;
+  --t-fila: 14px; --t-cabecera: 13px; --t-sub: 12.5px; --t-boton: 13.5px; --t-pildora: 12.5px; --t-nota: 11.3px; --t-apoyo: 11px; --t-etiqueta: 11px; --t-barra: 9.1px;
+  /* medidas */
+  --r-tarjeta: 26px; --r-tarjeta-peq: 22px; --r-hoja: 32px; --margen: 14px; --hueco: 10px; --fila-alto: 46px; --casilla: 23px;
+  --barra-alto: 66px; --barra-borde: 16px; --mas-ancho: 62px;
+  /* cristal */
+  --cristal: linear-gradient(140deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.34) 55%, rgba(255,255,255,.46) 100%);
+  --cristal-tarjeta: linear-gradient(140deg, rgba(255,255,255,.84) 0%, rgba(255,255,255,.68) 60%, rgba(255,255,255,.76) 100%);
+  --cristal-tarjeta-inicio: linear-gradient(140deg, rgba(255,255,255,.76) 0%, rgba(255,255,255,.56) 60%, rgba(255,255,255,.66) 100%);
+  --cristal-barra: linear-gradient(140deg, rgba(255,255,255,.78), rgba(255,255,255,.60));
+  --cristal-barra-inicio: linear-gradient(140deg, rgba(255,255,255,.74), rgba(255,255,255,.56));
+  --cristal-hoja: linear-gradient(160deg, rgba(255,255,255,.96), rgba(255,255,255,.90));
+  --cristal-filtro: blur(18px) saturate(180%);
+  --cristal-sombra: inset 0 1.5px 0 rgba(255,255,255,.95), inset 1px 0 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.35), inset 0 -10px 18px -12px rgba(255,255,255,.75), 0 0 0 1px rgba(43,58,66,.04), 0 10px 28px rgba(43,58,66,.10), 0 1px 2px rgba(43,58,66,.06);
+  --neutro-control: linear-gradient(140deg, rgba(255,255,255,.98), rgba(255,255,255,.84));
+  --velo: rgba(43,58,66,.28);
+  /* logo: colores originales, sin rebajar */
+  --logo-1: #FF7D5E; --logo-2: #FFCB3D; --logo-3: #B9DE4A; --logo-4: #62D08D; --logo-5: #4AD3CD; --logo-6: #74ABF7; --logo-7: #B5A3F4; --logo-8: #F99DBA;
+  /* secciones */
+  --c-coral-b: #ED8870; --c-coral-f: #F2C8BE; --c-coral-fo: #FBF3F0; --c-coral-t: #51190B; --c-coral-fu: #C25B42; --c-coral-ico: #C45A40;
+  --c-amarillo-b: #EAC152; --c-amarillo-f: #F1DDAE; --c-amarillo-fo: #F9F3E4; --c-amarillo-t: #392C0C; --c-amarillo-fu: #BC9B40; --c-amarillo-ico: #AF8825;
+  --c-lima-b: #B1CE5A; --c-lima-f: #D0E4A4; --c-lima-fo: #EDF7D8; --c-lima-t: #29320C; --c-lima-fu: #8BA33D; --c-lima-ico: #78932F;
+  --c-verde-b: #6EC490; --c-verde-f: #B1E2C1; --c-verde-fo: #E6F9EB; --c-verde-t: #0E371F; --c-verde-fu: #3A9966; --c-verde-ico: #389B66;
+  --c-turquesa-b: #59C4BF; --c-turquesa-f: #A9E2DE; --c-turquesa-fo: #E0F9F6; --c-turquesa-t: #0E3533; --c-turquesa-fu: #3B9A96; --c-turquesa-ico: #3A9B97;
+  --c-azul-b: #82ADE9; --c-azul-f: #C1D5F1; --c-azul-fo: #F1F5FB; --c-azul-t: #0C2D58; --c-azul-fu: #5984C0; --c-azul-ico: #5784C2;
+  --c-lavanda-b: #BAACEB; --c-lavanda-f: #DAD4F4; --c-lavanda-fo: #F6F4FB; --c-lavanda-t: #35146A; --c-lavanda-fu: #9383C3; --c-lavanda-ico: #9282C4;
+  --c-rosa-b: #EFA7BE; --c-rosa-f: #F5D1DB; --c-rosa-fo: #FBF2F5; --c-rosa-t: #52102C; --c-rosa-fu: #C57D95; --c-rosa-ico: #C67C95;
+  /* degradado de cabecera */
+  --g-coral-0: #ED8870; --g-coral-1: #ED9E6E; --g-coral-2: #F2C8BE;
+  --g-amarillo-0: #EAC152; --g-amarillo-1: #E8AE45; --g-amarillo-2: #F2DE97;
+  --g-lima-0: #B1CE5A; --g-lima-1: #9BCA68; --g-lima-2: #D0E4A4;
+  --g-verde-0: #6EC490; --g-verde-1: #4EB695; --g-verde-2: #B1E2C1;
+  --g-turquesa-0: #59C4BF; --g-turquesa-1: #6BC0D9; --g-turquesa-2: #A9E2DE;
+  --g-azul-0: #82ADE9; --g-azul-1: #98A4E9; --g-azul-2: #C1D5F1;
+  --g-lavanda-0: #BAACEB; --g-lavanda-1: #CDA8E6; --g-lavanda-2: #DAD4F4;
+  --g-rosa-0: #EFA7BE; --g-rosa-1: #F4A5AB; --g-rosa-2: #F5D1DB;
+  --g-neutro-0: #E9E2D3; --g-neutro-1: #D8E2E7; --g-neutro-2: #F4F0E6;
+  /* Inicio: un punto más vivo */
+  --i-coral-b: #F68267; --i-coral-f: #F5C6BB;
+  --i-amarillo-b: #F4C648; --i-amarillo-f: #F6DFA9;
+  --i-lima-b: #B5D652; --i-lima-f: #D2E8A0;
+  --i-verde-b: #68CA8E; --i-verde-f: #ADE6BF;
+  --i-turquesa-b: #52CBC6; --i-turquesa-f: #A5E6E2;
+  --i-azul-b: #7BACF0; --i-azul-f: #BDD5F5;
+  --i-lavanda-b: #B7A7F0; --i-lavanda-f: #D8D1F7;
+  --i-rosa-b: #F4A2BC; --i-rosa-f: #F7CFDA;
+}
+
+/* Modo oscuro («apagado») */
+:root[data-tema="oscuro"] {
+  --txt: #EEF2F4; --txt2: #A9B4BA; --txt-barra: #C5CED3; --txt-tachado: #8A969C; --txt-atrasada: #FF9580; --borde-atrasada: #FF9580;
+  --raya: rgba(255,255,255,.10); --fondo: #0F1417; --fondo-ajustes: #0F1417;
+  --cristal: linear-gradient(140deg, rgba(44,53,60,.74), rgba(27,34,39,.68));
+  --cristal-tarjeta: var(--cristal); --cristal-tarjeta-inicio: var(--cristal); --cristal-barra: var(--cristal); --cristal-barra-inicio: var(--cristal);
+  --cristal-hoja: linear-gradient(160deg, rgba(38,46,52,.97), rgba(26,33,38,.95));
+  --cristal-sombra: inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 1px rgba(255,255,255,.07), 0 10px 28px rgba(0,0,0,.4);
+  --neutro-control: rgba(255,255,255,.2);
+  --velo: rgba(0,0,0,.5);
+  --campo: rgba(255,255,255,.09); --campo-borde: rgba(255,255,255,.10); --pista: rgba(255,255,255,.14);
+  /* En oscuro: título de sección en el tono f, iconos en el tono b, relleno de barras en b.
+     Resplandor de la sección: los tres radiales con el color al 34 % (el tercero al 15 %); en Ajustes, el neutro al 16 %.
+     Inicio: las nueve manchas en tono b, opacidad .30 las tres de arriba y .14 el resto. */
+}
+
+/* Fondo de una sección (claro). Sustituir «lima» por el color. El fondo va fijo; el contenido se desliza encima. */
+.fondo-seccion-ejemplo {
+  background:
+    radial-gradient(120% 60% at 0% 0%, var(--g-lima-0) 0%, transparent 62%),
+    radial-gradient(110% 55% at 100% 4%, var(--g-lima-1) 0%, transparent 60%),
+    radial-gradient(90% 40% at 60% 46%, var(--g-lima-2) 0%, transparent 70%),
+    var(--fondo);
+}
