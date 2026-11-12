@@ -34,15 +34,16 @@ Nav.barra = function () { _barra49.call(this); try { rnColorFondo(); } catch (x)
 async function rnArrancar() {
   const t0 = performance.now();
   const ar = $('#arranque');
-  if (ar) ar.innerHTML = rnAurora() + '<div class="rn-arr"><span class="rn-arr-c">' + rnPuntos(96, .125) + '</span><b>Ronda</b></div>';
   aplicarTema();
+  /* 0.2.1: la animación de la 1.8.0 con el logo nuevo (48_rn_021.js), a la vez que se cargan los datos */
+  const anim = ar ? rnAnimarArranque(ar) : Promise.resolve();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
   await cargarPrueba();
+  await anim;
   Nav.raiz('inicio');
-  /* Que se vea el logo un momento, sin pasar de 0,75 s en total */
-  const resto = Math.max(0, 450 - (performance.now() - t0));
-  await espera(resto);
-  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 300); }
+  /* La app entra con un fundido, sin salto */
+  const capas = [$('#app'), $('#nav')].filter(Boolean); if (!REDUCIR) { capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya')))); setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900); }
+  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 650); }
 }
 /* Sin menú del iPhone al mantener pulsado (A2) */
 document.addEventListener('contextmenu', ev => { if (ev.target.closest('.rn-barra,.rn-it,[data-lp]')) ev.preventDefault(); });

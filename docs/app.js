@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.2.0 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.2.1 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.2.0';  /* prueba del diseño nuevo */
+const VERSION = '0.2.1';  /* prueba del diseño nuevo */
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
@@ -6068,7 +6068,7 @@ Object.assign(window.RONDA || (window.RONDA = {}), { animarArranque: animarArran
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 3;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+const DATOS_V = 4;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
 let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
@@ -6226,6 +6226,10 @@ function crearEjemplo() {
   [['Compra grande', 'Aceite, arroz, legumbres, papel de cocina, detergente y pastillas del lavavajillas', COL[1], 0, PI], ['Ideas de regalo', 'Entradas, un libro, cena fuera', COL[7], 1, PR], ['Wifi de casa', 'La red y la clave están en Documentos, carpeta Casa', COL[6], 2, PR], ['Disneyland', 'Febrero: los dos parques, dos días y una noche. Mirar trenes', COL[4], 4, PI], ['Medidas del salón', 'Pared del sofá: 3,42 m. Hueco de la estantería: 86 cm', COL[5], 23, PI], ['Acuario', 'Probar bettas hembra en vez de gouramis. Preguntar en la tienda', COL[3], 10, PI]].forEach(n => pon('notas', id('nota'), { titulo: n[0], emoji: '', html: '<p>' + esc(n[1]) + '</p>', texto: n[1], color: n[2], editada: ahora - n[3] * 86400000, por: n[4], fijada: n[0] === 'Wifi de casa' }));
   /* Feedback */
   [['En el menú de la semana, cuando el texto es muy largo se corta en la tarjeta de Inicio', 'menu', PI, 0, 'p'], ['Poder cambiar el orden de las plantas arrastrando', 'plantas', PR, 1, 'p'], ['Al añadir un gasto desde Inicio, que recuerde quién pagó la última vez', 'gastos', PI, 2, 'p'], ['El candado de las tareas privadas', 'tareas', PI, 20, 'h']].forEach(f => pon('feedback', id('fb'), { texto: f[0], sec: f[1], adj: [], por: f[2], creado: ahora - f[3] * 86400000, estado: f[4] }));
+  /* 0.2.1 · Actividad: unos cambios de Ru para probar «Deshacer» y «Rehacer» */
+  pon('notas', 'nota-ejemplo-borrada', { titulo: 'Lista de la ferretería', emoji: '', html: '<p>Tacos, tornillos y una bombilla E27</p>', texto: 'Tacos, tornillos y una bombilla E27', color: COL[2], editada: ahora - 3 * 86400000, por: PR, fijada: false, _b: 1 });
+  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000, desh: 0, ant: { para: PR }, nue: { para: 'todos' } });
+  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000, desh: 0 });
   return recs;
 }
 
@@ -6858,10 +6862,11 @@ P.ajustes = {
     const fila = (id, t, s, ir) => '<button class="rn-rw rn-fa" data-a="rnAjIr" data-ir="' + ir + '">' + '<span class="rn-chip">' + rnIc(id, 26, 2) + '</span><span class="rn-fat"><span class="rn-t">' + t + '</span>' + (s ? '<span class="rn-n">' + s + '</span>' : '') + '</span>' + rnFle + '</button>';
     return rnTitulo('Ajustes') +
       '<button class="rn-cd rn-perfil" data-a="rnAjIr" data-ir="miperfil">' + rnAv(x, 50) + '<span class="rn-fat"><b>' + esc(x.nombre || '') + '</b><span class="rn-n">' + (esAdmin() ? 'Administrador' : 'Miembro') + ' de ' + esc(e.nombre) + '</span></span>' + rnFle + '</button>' +
-      '<h2 class="rn-gt">La casa</h2><div class="rn-cd">' + fila('hogar-espacio', 'Nombre y emoji del hogar', esc(e.nombre), 'hogarAj') + fila('personas', 'Personas', ps.map(p => esc(p.nombre)).join(' y '), 'personas') + fila('modulo-calendario', 'Avisos en tu calendario', 'Calendario «' + esc((S.cal || {}).nombre || 'Casa') + '» (de ejemplo)', 'avisos') + '</div>' +
+      '<h2 class="rn-gt">La casa</h2><div class="rn-cd">' + fila('hogar-espacio', 'Nombre y emoji del hogar', esc(e.nombre), 'hogarAj') + fila('personas', 'Personas', ps.map(p => esc(p.nombre)).join(' y '), 'personas') + fila('reloj', 'Actividad', 'Quién ha cambiado qué. Se puede deshacer', 'actividad') + fila('modulo-calendario', 'Avisos en tu calendario', 'Calendario «' + esc((S.cal || {}).nombre || 'Casa') + '» (de ejemplo)', 'avisos') + '</div>' +
       '<h2 class="rn-gt">La app</h2><div class="rn-cd">' + fila('sol', 'Apariencia', { claro: 'Claro', oscuro: 'Oscuro', auto: 'Automático: como el iPhone' }[tema], 'apariencia') + fila('ordenar', 'Barra de abajo', rnBarra().map(k => rnCorto(k)).join(', '), 'barra') + fila('nube-sincronizada', 'Sincronización', 'Sin conexión: los datos son de ejemplo', 'sincronizacion') + fila('descargar', 'Copia de seguridad', 'No hay en la prueba', 'copia') + fila('escudo', 'Comprobaciones', 'Errores y datos del móvil', 'comprobaciones') + fila('informacion', 'Acerca de Ronda', '', 'acerca') + '</div>' +
       '<p class="rn-version">Ronda · prueba ' + VERSION + ' · datos de ejemplo</p>' +
-      '<p class="rn-version rn-medidas">' + esc(rnMedidas()) + '</p>';
+      '<p class="rn-version rn-medidas">' + esc(rnMedidas()) + '</p>' +
+      '<button class="rn-version rn-verbv" data-a="rnVerBienvenida">Ver otra vez la animación de la primera vez</button>';
   }
 };
 ACC.rnAjIr = el => { const d = el.dataset.ir; if (P[d]) Nav.ir(d, {}); };
@@ -7386,6 +7391,172 @@ const RN_ANADIR = [['Tarea', 'modulo-tareas', 'lima', () => rnNuevaTarea({})], [
 P.inicio.rnPlus = () => abrirHoja(rnCabHoja('Añadir') + '<div class="rn-secs rn-secs3">' + RN_ANADIR.map((x, i) => '<button class="rn-sc rn-k-' + x[2] + '" data-a="rnAnadirY" data-i="' + i + '">' + rnChip(x[1], 44) + '<span>' + x[0] + '</span></button>').join('') + '</div>', { clase: 'rn-hj-sec' });
 ACC.rnAnadirY = el => { const f = RN_ANADIR[+el.dataset.i][3]; cerrarHoja(); setTimeout(() => { if (Nav.pila[0].id === 'gastos' || RN_ANADIR[+el.dataset.i][0] !== 'Gasto') f(); else { const c = cuentasAbiertas()[0]; if (!c) return Nav.ir('cuentaEditar', {}); const yoP = (c.participantes || []).find(x => x.persona === S.cfg.persona); Nav.ir('mov', { cid: c.id, pagadoPor: yoP ? yoP.id : (c.participantes || [])[0].id }); } }, 320); };
 
+/* ---- 48_rn_021.js ---- */
+/* ===================== 0.2.1 · arreglos tras probar la 0.2.0 en el iPhone =====================
+   1. Actividad en Ajustes, con «Deshacer» y «Rehacer» en cada cambio.
+   2. El selector de emoji (y el resto de capas de la app de hoy que se ponen encima de todo) con su estilo.
+   3. El «+» de las secciones donde no hay nada que añadir (Menú): gris, sin quitarlo.
+   4. El micrófono (Dilo) gris: necesita Google.
+   5. La animación del arranque, la de la 1.8.0 con el logo nuevo (los puntos sobre el círculo blanco y «Ronda» debajo).
+      Centrada con CSS en la pantalla física: no se mide ningún texto (error 4). */
+
+/* ---------- 1. Actividad: cada cambio guarda cómo estaba antes y cómo quedó ---------- */
+function registrarActividad(col, id, campos, previo) {
+  if (!S.cfg || SIN_ACT.indexOf(col) >= 0 || !COLNOM[col]) return;
+  const ks = Object.keys(campos);
+  if (!ks.length || ks.every(k => CAMPOS_MUDOS.indexOf(k) >= 0)) return;
+  const antes = previo ? previo.f : null, todo = Object.assign({}, antes || {}, campos);
+  let acc = 'c';
+  if (campos._b === 1) acc = 'b'; else if (campos._b === 0) acc = 'r';
+  else if (!antes || antes._b) acc = 'n';
+  else if (col === 'compra' && campos.hecho === true) acc = 'k';
+  else if (col === 'tareas' && campos.hecho === true) acc = 'h';
+  else if (col === 'fijos' && campos.pagos && (campos.pagos.length > ((antes.pagos || []).length))) acc = 'p';
+  else if (['plantas', 'acuario', 'medicacion'].indexOf(col) >= 0 && campos.ultima) acc = 'h';
+  else if (col === 'turnos' && campos.hist) acc = 'h';
+  const txt = nombreRegistro(col, todo);
+  const clave = col + '|' + id + '|' + acc, ya = ACT_RECIENTE[clave];
+  const aid = ya && Date.now() - ya.t < 90000 ? ya.id : 'a' + uid();
+  ACT_RECIENTE[clave] = { id: aid, t: Date.now() };
+  const r = { q: S.cfg.persona, col: col, ref: id, acc: acc, txt: String(txt).slice(0, 80), cuando: Date.now(), desh: 0 };
+  if (col === 'fijos' && acc === 'p') r.imp = Number(todo.importe) || 0;
+  if (col === 'movs' && acc === 'n') r.imp = Number(todo.importe) || 0;
+  if (col === 'menu') r.txt = 'el menú de la semana';
+  /* Cómo estaba y cómo quedó (solo los campos que cambian). Si se junta con la línea anterior, se queda el «antes» de la primera. */
+  if (acc !== 'n' && acc !== 'b' && acc !== 'r') {
+    const ant = {}, nue = {};
+    ks.forEach(k => { if (CAMPOS_MUDOS.indexOf(k) >= 0) return; ant[k] = antes && antes[k] !== undefined ? antes[k] : null; nue[k] = campos[k]; });
+    const prev = S.recs.actividad && S.recs.actividad[aid] && S.recs.actividad[aid].f;
+    r.ant = Object.assign({}, ant, prev && prev.ant || {});
+    r.nue = Object.assign({}, prev && prev.nue || {}, nue);
+    if (JSON.stringify(r.ant).length + JSON.stringify(r.nue).length > 6000) { delete r.ant; delete r.nue; }
+  }
+  _cambiarBase('actividad', aid, r);
+}
+/* Qué hace «Deshacer» y «Rehacer» en cada línea */
+function rnPasoActividad(a, deshacer) {
+  if (a.acc === 'n' || a.acc === 'r') return { _b: deshacer ? 1 : 0 };
+  if (a.acc === 'b') return { _b: deshacer ? 0 : 1 };
+  if (deshacer ? a.ant : a.nue) return Object.assign({}, deshacer ? a.ant : a.nue);
+  return null;
+}
+function rnSePuedeDeshacer(a) { return !!(S.recs[a.col] && S.recs[a.col][a.ref] && rnPasoActividad(a, true)); }
+function rnHacerActividad(aid, deshacer) {
+  const a = dato('actividad', aid); if (!a) return;
+  const c = rnPasoActividad(a, deshacer); if (!c) return toast('Este cambio no se puede ' + (deshacer ? 'deshacer' : 'rehacer') + '.');
+  /* Sin apuntarlo como un cambio nuevo: la misma línea pasa a «deshecho» */
+  _cambiarBase(a.col, a.ref, c);
+  _cambiarBase('actividad', aid, { desh: deshacer ? 1 : 0 });
+  Nav.refrescar(true);
+  toast(deshacer ? 'Deshecho: «' + (a.txt || COLNOM[a.col]) + '»' : 'Rehecho: «' + (a.txt || COLNOM[a.col]) + '»', deshacer ? 'Rehacer' : 'Deshacer', () => rnHacerActividad(aid, !deshacer), 'deshacer');
+}
+ACC.actDeshacer = el => rnHacerActividad(el.dataset.id, true);
+ACC.actRehacer = el => rnHacerActividad(el.dataset.id, false);
+ACC.actRecuperar = el => { const a = lista('actividad').find(x => x.ref === el.dataset.ref && x.acc === 'b'); if (a) rnHacerActividad(a.id, true); else { cambiar(el.dataset.col, el.dataset.ref, { _b: 0 }); Nav.refrescar(true); toast('Recuperado'); } };
+P.actividad = {
+  html: p => {
+    p.q = p.q || ''; p.s = p.s || '';
+    let l = actividades(30);
+    if (p.q) l = l.filter(a => a.q === p.q);
+    if (p.s) l = l.filter(a => COLNOM[a.col] === p.s);
+    const secs = []; actividades(30).forEach(a => { const s = COLNOM[a.col]; if (s && secs.indexOf(s) < 0) secs.push(s); });
+    let h = tope('') + head('Actividad', 'Últimos 30 días. Toca «Deshacer» para volver a como estaba.') + '<div class="chips" style="flex-wrap:nowrap;overflow-x:auto;margin-bottom:6px"><button class="chip' + (!p.q ? ' on' : '') + '" data-a="pSet" data-k="q" data-v="">Todo</button>' + personas().map(x => '<button class="chip' + (p.q === x.id ? ' on' : '') + '" data-a="pSet" data-k="q" data-v="' + x.id + '" style="flex:none">' + esc(x.nombre) + '</button>').join('') + '</div>' +
+      (secs.length > 1 ? '<div class="chips" style="flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px"><button class="chip' + (!p.s ? ' on' : '') + '" data-a="pSet" data-k="s" data-v="" style="flex:none">Todas las secciones</button>' + secs.map(s => '<button class="chip' + (p.s === s ? ' on' : '') + '" data-a="pSet" data-k="s" data-v="' + esc(s) + '" style="flex:none">' + esc(s) + '</button>').join('') + '</div>' : '');
+    if (!l.length) return h + vacio('sin-avisos', 'Nada por aquí', 'Cuando alguien añada, cambie o borre algo, saldrá aquí.');
+    let dia = '';
+    return h + l.slice(0, 200).map(a => {
+      const d = isoDia(new Date(a.cuando)); let sep = '';
+      if (d !== dia) { sep = (dia ? '</div>' : '') + '<p class="lab2">' + cap(cuando(d)) + '</p><div class="card grp">'; dia = d; }
+      const puede = rnSePuedeDeshacer(a);
+      const bt = !puede ? '' : a.desh ? '<button class="mini rn-act-b" data-a="actRehacer" data-id="' + a.id + '">Rehacer</button>' : '<button class="mini rn-act-b" data-a="actDeshacer" data-id="' + a.id + '">Deshacer</button>';
+      return sep + '<div class="row' + (a.desh ? ' rn-act-desh' : '') + '">' + (dato('personas', a.q) ? av(dato('personas', a.q), 30) : sq('tarjeta', 7)) + '<div class="f"><b style="font-size:15px">' + textoActividad(a) + '</b><small>' + esc(COLNOM[a.col] || '') + ' · ' + hora(new Date(a.cuando)) + (a.desh ? ' · deshecho' : '') + '</small></div>' + bt + '</div>';
+    }).join('') + '</div>';
+  }
+};
+
+/* ---------- 2. Capas de la app de hoy que se ponen encima de todo (selector de emoji…) ----------
+   Se metían sueltas en <body>, fuera de las pantallas, y se quedaban sin estilo (el selector no se veía).
+   Ahora van dentro de #rn-capas, que lleva el mismo estilo que las pantallas de dentro. */
+(function () {
+  let capas = document.getElementById('rn-capas');
+  if (!capas) { capas = document.createElement('div'); capas.id = 'rn-capas'; capas.className = 'rn-capas'; document.body.appendChild(capas); }
+  const nuestra = el => !el.className || typeof el.className !== 'string' || /(^|\s)rn-/.test(el.className) || el.id === 'app' || el.id === 'arranque' || el.id === 'nav' || el.id === 'capa' || el.id === 'rn-capas';
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
+    if (n.nodeType !== 1 || n.parentNode !== document.body || /^(SCRIPT|TEXTAREA|A|INPUT|STYLE|LINK)$/.test(n.tagName) || nuestra(n)) return;
+    capas.appendChild(n);
+  }))).observe(document.body, { childList: true });
+})();
+
+/* ---------- 3 y 4. El «+» y el micrófono, grises donde no se pueden usar ---------- */
+const _barra48 = Nav.barra;
+Nav.barra = function () {
+  _barra48.call(this);
+  const n = $('#nav'), raiz = this.pila[0], top = this.actual();
+  if (!n || !raiz || n.classList.contains('rn-oculta') || (top && !top.raiz && !P[top.id].rn)) return;
+  /* Inicio y Ajustes no llevan «+» en los JPG; las demás secciones sí, aunque no haya nada que añadir */
+  if (raiz.id === 'ajustes' || raiz.id === 'inicio' || $('.rn-plus', n)) return;
+  n.classList.remove('rn-sin-plus');
+  n.insertAdjacentHTML('beforeend', '<button class="rn-plus rn-gl rn-plus-no" data-a="rnPlusNo" aria-disabled="true" aria-label="Añadir (aquí no hay nada que añadir)">' + rnIc('anadir', 26, 2.2) + '</button>');
+};
+ACC.rnPlusNo = () => {
+  const r = Nav.pila[0];
+  toast(r && r.id === 'menu' ? 'En el menú no se añade nada: toca un día para cambiar la comida o la cena.' : 'Aquí no hay nada que añadir.');
+};
+ACC.rnDilo = () => toast('Dilo necesita Google (Gemini) y en la prueba no hay conexión con Google. En la app de verdad funciona.');
+
+/* ---------- 5. Arranque: la animación de la 1.8.0 con el logo nuevo ----------
+   La primera vez que se abre, la larga (la de la bienvenida: las bolas salen girando, laten y se colocan en el círculo,
+   y «Ronda» aparece letra a letra). Las demás veces, la corta de 0,75 s. */
+const RN_ARR_R = 36, RN_ARR_D = 12.5, RN_ARR_K = 0.96;   /* en el círculo de 132 px: anillo de 34,6 px y bolas de 12 px */
+const RN_ARR_SUBE = 34;                                   /* el centro del círculo queda 34 px por encima del centro de la pantalla */
+function rnArrBolas(t, rapido) {
+  let o = '', cx = 0, cy = 0, k = RN_ARR_K, m = 1;
+  const rot = rapido ? -90 * (1 - oC(cl(t / 0.95))) : -110 * (1 - oC(cl((t - 0.2) / 1.6)));
+  if (!rapido) { m = io(cl((t - T0) / TM)); const k0 = RN_ARR_K * 3.3; k = k0 + (RN_ARR_K - k0) * m; cy = RN_ARR_SUBE * (1 - m); }
+  for (let i = 0; i < 8; i++) {
+    const t0 = rapido ? 0.05 + i * 0.065 : 0.35 + i * 0.12, p = cl((t - t0) / (rapido ? 0.38 : 0.55)), e = oB(p), R = RN_ARR_R * e, a = (i * 45 + rot) * Math.PI / 180;
+    let s = rapido ? cl(p * 2.4) * (0.6 + 0.4 * Math.min(1.25, e)) : cl(p * 2.2) * (0.55 + 0.45 * Math.min(1.25, e));
+    if (!rapido) { const wv = cl((t - 1.9 - i * 0.07) / 0.5); s *= 1 + 0.16 * Math.sin(wv * Math.PI) * (1 - m); }
+    const q = cl((t - t0 - (rapido ? 0.2 : 0.28)) / (rapido ? 0.45 : 0.6));
+    if (q > 0 && q < 1 && (rapido || m === 0)) o += '<circle cx="' + (RN_ARR_R * Math.sin(a)).toFixed(2) + '" cy="' + (-RN_ARR_R * Math.cos(a)).toFixed(2) + '" r="' + (RN_ARR_D + (rapido ? 12 : 16) * oC(q)).toFixed(2) + '" fill="' + RN_LOGO[i] + '" opacity="' + ((rapido ? 0.3 : 0.28) * (1 - q)).toFixed(3) + '"/>';
+    if (p > 0) o += '<circle cx="' + (R * Math.sin(a)).toFixed(2) + '" cy="' + (-R * Math.cos(a)).toFixed(2) + '" r="' + (RN_ARR_D * Math.max(s, 0)).toFixed(3) + '" fill="' + RN_LOGO[i] + '"/>';
+  }
+  return { svg: '<g transform="translate(' + cx.toFixed(2) + ' ' + cy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' + o + '</g>', m: m };
+}
+function rnPrimeraVez() { try { return !localStorage.getItem('rondaP-bienvenida'); } catch (e) { return false; } }
+function rnAnimarArranque(ar) {
+  return new Promise(ok => {
+    const larga = rnPrimeraVez();
+    try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
+    ar.classList.add('rn-anim');
+    ar.innerHTML = rnAurora() + '<div class="rn-arr"><span class="rn-arr-c"><i class="rn-arr-f"></i><svg class="rn-arr-s" width="1" height="1" aria-hidden="true"></svg></span><b aria-label="Ronda">' + 'Ronda'.split('').map(l => '<span class="rn-arr-l">' + l + '</span>').join('') + '</b></div>';
+    const svg = $('.rn-arr-s', ar), fondo = $('.rn-arr-f', ar), letras = $$('.rn-arr-l', ar);
+    let tA = 0;
+    const fin = () => { window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; const b = rnArrBolas(9, true); svg.innerHTML = b.svg; fondo.style.cssText = ''; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
+    if (REDUCIR) { fin(); return; }
+    const t0 = tA = performance.now(), FIN = T0 + 0.3 + 4 * 0.1 + 0.55 + 0.25;
+    const paso = now => {
+      if (larga) {
+        const t = (now - t0) / 1000;
+        const b = rnArrBolas(t, false); svg.innerHTML = b.svg;
+        /* El círculo blanco aparece mientras las bolas viajan a su sitio */
+        fondo.style.opacity = b.m.toFixed(3); fondo.style.transform = 'scale(' + (0.7 + 0.3 * b.m).toFixed(3) + ')';
+        letras.forEach((l, i) => { const p = oC(cl((t - (T0 + 0.3 + i * 0.1)) / 0.55)); l.style.opacity = p; l.style.transform = 'translateY(' + (18 * (1 - p)).toFixed(1) + 'px)'; });
+        if (t < FIN) requestAnimationFrame(paso); else fin();
+      } else {
+        const t = (now - t0) / 1000 * 1.333;
+        const b = rnArrBolas(t, true); svg.innerHTML = b.svg;
+        const f = oC(cl(t / 0.35)); fondo.style.opacity = f.toFixed(3); fondo.style.transform = 'scale(' + (0.85 + 0.15 * f).toFixed(3) + ')';
+        letras.forEach((l, i) => { const p = oC(cl((t - i * 0.05) / 0.4)); l.style.opacity = p; l.style.transform = 'translateY(' + (10 * (1 - p)).toFixed(1) + 'px)'; });
+        if (t < 1.0) requestAnimationFrame(paso); else fin();
+      }
+    };
+    requestAnimationFrame(paso);
+  });
+}
+/* Para volver a ver la animación larga (Ajustes, abajo) */
+ACC.rnVerBienvenida = () => { try { localStorage.removeItem('rondaP-bienvenida'); } catch (e) { } location.reload(); };
+
 /* ---- 49_rn_arranque.js ---- */
 /* ===================== DISEÑO NUEVO · arranque (pieza 05) =====================
    El círculo con los puntos y «Ronda», centrado con CSS en la pantalla física (sin medir texto: A4).
@@ -7423,15 +7594,16 @@ Nav.barra = function () { _barra49.call(this); try { rnColorFondo(); } catch (x)
 async function rnArrancar() {
   const t0 = performance.now();
   const ar = $('#arranque');
-  if (ar) ar.innerHTML = rnAurora() + '<div class="rn-arr"><span class="rn-arr-c">' + rnPuntos(96, .125) + '</span><b>Ronda</b></div>';
   aplicarTema();
+  /* 0.2.1: la animación de la 1.8.0 con el logo nuevo (48_rn_021.js), a la vez que se cargan los datos */
+  const anim = ar ? rnAnimarArranque(ar) : Promise.resolve();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
   await cargarPrueba();
+  await anim;
   Nav.raiz('inicio');
-  /* Que se vea el logo un momento, sin pasar de 0,75 s en total */
-  const resto = Math.max(0, 450 - (performance.now() - t0));
-  await espera(resto);
-  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 300); }
+  /* La app entra con un fundido, sin salto */
+  const capas = [$('#app'), $('#nav')].filter(Boolean); if (!REDUCIR) { capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya')))); setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900); }
+  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 650); }
 }
 /* Sin menú del iPhone al mantener pulsado (A2) */
 document.addEventListener('contextmenu', ev => { if (ev.target.closest('.rn-barra,.rn-it,[data-lp]')) ev.preventDefault(); });

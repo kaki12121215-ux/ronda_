@@ -9,10 +9,11 @@ P.ajustes = {
     const fila = (id, t, s, ir) => '<button class="rn-rw rn-fa" data-a="rnAjIr" data-ir="' + ir + '">' + '<span class="rn-chip">' + rnIc(id, 26, 2) + '</span><span class="rn-fat"><span class="rn-t">' + t + '</span>' + (s ? '<span class="rn-n">' + s + '</span>' : '') + '</span>' + rnFle + '</button>';
     return rnTitulo('Ajustes') +
       '<button class="rn-cd rn-perfil" data-a="rnAjIr" data-ir="miperfil">' + rnAv(x, 50) + '<span class="rn-fat"><b>' + esc(x.nombre || '') + '</b><span class="rn-n">' + (esAdmin() ? 'Administrador' : 'Miembro') + ' de ' + esc(e.nombre) + '</span></span>' + rnFle + '</button>' +
-      '<h2 class="rn-gt">La casa</h2><div class="rn-cd">' + fila('hogar-espacio', 'Nombre y emoji del hogar', esc(e.nombre), 'hogarAj') + fila('personas', 'Personas', ps.map(p => esc(p.nombre)).join(' y '), 'personas') + fila('modulo-calendario', 'Avisos en tu calendario', 'Calendario «' + esc((S.cal || {}).nombre || 'Casa') + '» (de ejemplo)', 'avisos') + '</div>' +
+      '<h2 class="rn-gt">La casa</h2><div class="rn-cd">' + fila('hogar-espacio', 'Nombre y emoji del hogar', esc(e.nombre), 'hogarAj') + fila('personas', 'Personas', ps.map(p => esc(p.nombre)).join(' y '), 'personas') + fila('reloj', 'Actividad', 'Quién ha cambiado qué. Se puede deshacer', 'actividad') + fila('modulo-calendario', 'Avisos en tu calendario', 'Calendario «' + esc((S.cal || {}).nombre || 'Casa') + '» (de ejemplo)', 'avisos') + '</div>' +
       '<h2 class="rn-gt">La app</h2><div class="rn-cd">' + fila('sol', 'Apariencia', { claro: 'Claro', oscuro: 'Oscuro', auto: 'Automático: como el iPhone' }[tema], 'apariencia') + fila('ordenar', 'Barra de abajo', rnBarra().map(k => rnCorto(k)).join(', '), 'barra') + fila('nube-sincronizada', 'Sincronización', 'Sin conexión: los datos son de ejemplo', 'sincronizacion') + fila('descargar', 'Copia de seguridad', 'No hay en la prueba', 'copia') + fila('escudo', 'Comprobaciones', 'Errores y datos del móvil', 'comprobaciones') + fila('informacion', 'Acerca de Ronda', '', 'acerca') + '</div>' +
       '<p class="rn-version">Ronda · prueba ' + VERSION + ' · datos de ejemplo</p>' +
-      '<p class="rn-version rn-medidas">' + esc(rnMedidas()) + '</p>';
+      '<p class="rn-version rn-medidas">' + esc(rnMedidas()) + '</p>' +
+      '<button class="rn-version rn-verbv" data-a="rnVerBienvenida">Ver otra vez la animación de la primera vez</button>';
   }
 };
 ACC.rnAjIr = el => { const d = el.dataset.ir; if (P[d]) Nav.ir(d, {}); };

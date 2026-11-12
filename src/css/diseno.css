@@ -182,14 +182,14 @@ html.rn-icono { --banda: 40px; }
 /* ---------- Barra de abajo y «+» ---------- */
 .rn-barra { position: fixed; left: 0; right: 0; bottom: 0; height: 0; z-index: 50; }
 .rn-barra.rn-oculta { display: none; }
-.rn-nv { position: fixed; left: var(--barra-borde); right: 86px; bottom: calc(var(--barra-borde) - var(--abajo, 0px)); height: var(--barra-alto); border-radius: 33px; padding: 5px; display: flex; }
+.rn-nv { position: fixed; left: var(--barra-borde); right: 86px; bottom: var(--barra-borde); height: var(--barra-alto); border-radius: 33px; padding: 5px; display: flex; }
 .rn-barra .rn-nv { background: var(--cristal-barra); }
 .rn-barra.rn-en-ini .rn-nv { background: var(--cristal-barra-inicio); }
 .rn-sin-plus .rn-nv { right: var(--barra-borde); }
 .rn-tab { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; height: 56px; border-radius: 27px; font-size: var(--t-barra); font-weight: 600; color: var(--txt-barra); }
 .rn-tab span { white-space: nowrap; }
 .rn-tab.rn-on { font-weight: 700; }
-.rn-plus { position: fixed; right: var(--barra-borde); bottom: calc(var(--barra-borde) - var(--abajo, 0px)); width: var(--mas-ancho); height: var(--barra-alto); border-radius: 33px; display: flex; align-items: center; justify-content: center; }
+.rn-plus { position: fixed; right: var(--barra-borde); bottom: var(--barra-borde); width: var(--mas-ancho); height: var(--barra-alto); border-radius: 33px; display: flex; align-items: center; justify-content: center; }
 /* Pestaña activa y «+»: teñidos del color de la sección */
 .rn-barra .rn-tab.rn-on, .rn-barra .rn-plus.rn-gl {
   background: linear-gradient(140deg, color-mix(in srgb, var(--b) 96%, transparent), color-mix(in srgb, var(--b) 77%, transparent));
@@ -208,11 +208,11 @@ html.rn-icono { --banda: 40px; }
 /* ---------- Capa de hojas y avisos ---------- */
 #capa { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
 #capa > * { pointer-events: auto; }
-.rn-velo { position: fixed; left: 0; right: 0; top: 0; bottom: calc(0px - var(--abajo, 0px)); background: var(--velo); opacity: 0; transition: opacity .3s ease; }
+.rn-velo { position: fixed; left: 0; right: 0; top: 0; bottom: 0px; background: var(--velo); opacity: 0; transition: opacity .3s ease; }
 .rn-velo.rn-ver { opacity: 1; }
 .rn-hj {
-  position: fixed; left: 0; right: 0; bottom: calc(var(--kb, 0px) - var(--abajo, 0px));
-  max-height: calc(100% + var(--abajo, 0px) - max(env(safe-area-inset-top), 20px) - 12px - var(--kb, 0px));
+  position: fixed; left: 0; right: 0; bottom: var(--kb, 0px);
+  max-height: calc(100% - max(env(safe-area-inset-top), 20px) - 12px - var(--kb, 0px));
   border-radius: var(--r-hoja) var(--r-hoja) 0 0; padding: 10px 16px 0; display: flex; flex-direction: column;
   transform: translateY(105%); transition: transform .32s cubic-bezier(.2,.8,.2,1);
 }
@@ -283,7 +283,7 @@ html.conteclado .rn-hjc { padding-bottom: 14px; }
 
 /* ---------- Avisos breves (pieza 01 y 02) ---------- */
 .rn-aviso {
-  position: fixed; left: 16px; right: 16px; bottom: calc(var(--barra-borde) + var(--barra-alto) + 12px + var(--kb, 0px) - var(--abajo, 0px));
+  position: fixed; left: 16px; right: 16px; bottom: calc(var(--barra-borde) + var(--barra-alto) + 12px + var(--kb, 0px));
   min-height: 52px; border-radius: 26px; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 18px;
   background: rgba(43,58,66,.92); color: #FFFFFF; box-shadow: 0 8px 20px rgba(43,58,66,.22);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
@@ -302,7 +302,7 @@ html.conteclado .rn-hjc { padding-bottom: 14px; }
 /* ---------- Inicio ---------- */
 .rn-icab { display: flex; justify-content: space-between; align-items: center; margin: 4px 4px 0; }
 .rn-marca { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; }
-.rn-logo svg, .rn-arr-c svg { flex: none; width: auto; height: auto; }
+.rn-logo svg, .rn-arr-c svg:not(.rn-arr-s) { flex: none; width: auto; height: auto; }
 .rn-logo { width: 34px; height: 34px; min-width: 34px; border-radius: 50%; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(43,58,66,.14); flex: none; }
 [data-tema="oscuro"] .rn-logo { background: rgba(255,255,255,.12); box-shadow: none; }
 .rn-avs { display: flex; }
@@ -394,7 +394,7 @@ html.conteclado .rn-hjc { padding-bottom: 14px; }
 .rn-version { text-align: center; font-size: 10.9px; color: var(--txt2); font-weight: 500; margin-top: 14px; }
 
 /* ---------- Arranque (pieza 05) ---------- */
-#arranque { position: fixed; left: 0; right: 0; top: 0; height: calc(100% + var(--abajo, 0px)); z-index: 100; background: #FFFFFF; transition: opacity .28s ease; }
+#arranque { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 100; background: #FFFFFF; transition: opacity .28s ease; }
 #arranque:empty { display: none; }
 [data-tema="oscuro"] #arranque { background: var(--fondo); }
 #arranque.rn-fuera { opacity: 0; pointer-events: none; }
@@ -588,3 +588,36 @@ html.conteclado .rn-hjc { padding-bottom: 14px; }
 :is(.rn-viejo, .rn-hj) :is(.nm, .xx, .fbq, .plus) { color: #FFFFFF !important; }
 [data-tema="oscuro"] :is(.rn-viejo, .rn-hj) :is(.nm, .xx, .fbq, .plus) { color: #1B2226 !important; }
 :is(.rn-viejo, .rn-hj) .unt button { text-align: center; justify-content: center; }
+
+/* =====================================================================================
+   0.2.1 · arreglos tras probar la 0.2.0 en el iPhone
+   ===================================================================================== */
+/* La barra de abajo, el «+», los avisos y las hojas se colocan respecto al borde real de la pantalla:
+   en la 0.2.0 se restaba lo que «faltaba» y quedaban cortados. El fondo (#app) sí se sigue alargando. */
+/* El «+» donde no hay nada que añadir: gris, sin quitarlo */
+.rn-barra .rn-plus.rn-plus-no { background: rgba(255,255,255,.62) !important; color: #9AA4AA !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 4px 12px rgba(43,58,66,.08) !important; }
+[data-tema="oscuro"] .rn-barra .rn-plus.rn-plus-no { background: rgba(255,255,255,.08) !important; color: #6E7A81 !important; box-shadow: none !important; }
+/* El micrófono (Dilo) gris: en la prueba no hay Google */
+.rn-qmic { opacity: .38; }
+/* Sin lupa ni selección al tocar la casilla del emoji ni los botones (error 3) */
+:is(.rn-viejo, .rn-hj, .rn-capas) :is(.emb, .emb *, button, .chip, .row) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Capas de la app de hoy encima de todo (selector de emoji…) */
+.rn-capas { position: relative; z-index: 70; --bg: #FFFFFF; font-family: var(--f-texto); color: var(--txt); }
+[data-tema="oscuro"] .rn-capas { --bg: #1B2226; }
+.rn-capas .empick .hj { padding-bottom: calc(env(safe-area-inset-bottom) + 14px); }
+.rn-capas .empick .cats button.on { background: #2B3A42 !important; color: #FFFFFF !important; }
+[data-tema="oscuro"] .rn-capas .empick .cats button.on { background: #EEF2F4 !important; color: #1B2226 !important; }
+/* Actividad: «Deshacer» / «Rehacer» y las líneas deshechas */
+:is(.rn-viejo) .rn-act-b { flex: none; }
+:is(.rn-viejo) .rn-act-desh .f b { text-decoration: line-through; opacity: .6; }
+/* Ajustes: volver a ver la animación de la primera vez */
+.rn-verbv { display: block; margin: 4px auto 0; background: none; border: 0; text-decoration: underline; cursor: pointer; }
+/* Arranque animado (la animación de la 1.8.0 con el logo nuevo) */
+#arranque.rn-anim .rn-arr-c { position: relative; background: none; box-shadow: none; }
+.rn-arr-f { position: absolute; inset: 0; border-radius: 50%; background: #FFFFFF; box-shadow: 0 6px 24px rgba(43,58,66,.12); opacity: 0; }
+[data-tema="oscuro"] .rn-arr-f { background: rgba(255,255,255,.12); box-shadow: none; }
+.rn-arr-s { position: absolute; left: 50%; top: 50%; overflow: visible; }
+.rn-arr-l { display: inline-block; opacity: 0; }
+#arranque.rn-anim { transition: opacity .6s cubic-bezier(.33,0,.2,1); }
+#app.rn-entra, #nav.rn-entra { opacity: 0; }
+#app.rn-entra.rn-ya, #nav.rn-entra.rn-ya { opacity: 1; transition: opacity .6s cubic-bezier(.2,.7,.2,1); }

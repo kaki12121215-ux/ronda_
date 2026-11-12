@@ -4,7 +4,7 @@
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 3;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+const DATOS_V = 4;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
 let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
@@ -162,6 +162,10 @@ function crearEjemplo() {
   [['Compra grande', 'Aceite, arroz, legumbres, papel de cocina, detergente y pastillas del lavavajillas', COL[1], 0, PI], ['Ideas de regalo', 'Entradas, un libro, cena fuera', COL[7], 1, PR], ['Wifi de casa', 'La red y la clave están en Documentos, carpeta Casa', COL[6], 2, PR], ['Disneyland', 'Febrero: los dos parques, dos días y una noche. Mirar trenes', COL[4], 4, PI], ['Medidas del salón', 'Pared del sofá: 3,42 m. Hueco de la estantería: 86 cm', COL[5], 23, PI], ['Acuario', 'Probar bettas hembra en vez de gouramis. Preguntar en la tienda', COL[3], 10, PI]].forEach(n => pon('notas', id('nota'), { titulo: n[0], emoji: '', html: '<p>' + esc(n[1]) + '</p>', texto: n[1], color: n[2], editada: ahora - n[3] * 86400000, por: n[4], fijada: n[0] === 'Wifi de casa' }));
   /* Feedback */
   [['En el menú de la semana, cuando el texto es muy largo se corta en la tarjeta de Inicio', 'menu', PI, 0, 'p'], ['Poder cambiar el orden de las plantas arrastrando', 'plantas', PR, 1, 'p'], ['Al añadir un gasto desde Inicio, que recuerde quién pagó la última vez', 'gastos', PI, 2, 'p'], ['El candado de las tareas privadas', 'tareas', PI, 20, 'h']].forEach(f => pon('feedback', id('fb'), { texto: f[0], sec: f[1], adj: [], por: f[2], creado: ahora - f[3] * 86400000, estado: f[4] }));
+  /* 0.2.1 · Actividad: unos cambios de Ru para probar «Deshacer» y «Rehacer» */
+  pon('notas', 'nota-ejemplo-borrada', { titulo: 'Lista de la ferretería', emoji: '', html: '<p>Tacos, tornillos y una bombilla E27</p>', texto: 'Tacos, tornillos y una bombilla E27', color: COL[2], editada: ahora - 3 * 86400000, por: PR, fijada: false, _b: 1 });
+  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000, desh: 0, ant: { para: PR }, nue: { para: 'todos' } });
+  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000, desh: 0 });
   return recs;
 }
 

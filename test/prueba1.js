@@ -12,6 +12,8 @@ const PUERTO = 8140, WEB = 'http://localhost:' + PUERTO + '/';
 
 async function movil(b, oscuro) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: oscuro ? 'dark' : 'light', hasTouch: true, isMobile: true });
+  /* 0.2.1: como si ya se hubiera abierto antes (la animación larga de la primera vez la prueba test/prueba3.js) */
+  await ctx.addInitScript(() => { try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { } });
   const p = await ctx.newPage(); p.errores = [];
   p.on('pageerror', e => p.errores.push(e.message)); p.on('console', m => { if (m.type() === 'error') p.errores.push(m.text()); });
   return p;
@@ -36,7 +38,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
     cssL.split('}').forEach(bl => { const sel = bl.split('{')[0]; sel.split(',').forEach(x => { x = x.trim(); const ult = x.split(/[\s>+~]+/).pop(); if (ESTADOS.some(e => ult === '.' + e)) sueltas.push(x); }); });
     comprueba(!sueltas.length, 'las clases de estado (rn-on, rn-ver…) no se usan solas como pieza' + (sueltas.length ? ': ' + sueltas.join(' | ') : ''));
     /* Solo el CSS nuevo (diseno.css), sin las reglas que retocan las pantallas de dentro (.rn-viejo / .rn-hj) */
-    const nuevo = fs.readFileSync(R + '/src/css/diseno.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').split('}').filter(b => !/rn-viejo|rn-hj/.test(b.split('{')[0])).join('}');
+    const nuevo = fs.readFileSync(R + '/src/css/diseno.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').split('}').filter(b => !/rn-viejo|rn-hj|rn-capas/.test(b.split('{')[0])).join('}');
     const clases = new Set((nuevo.replace(/url\([^)]*\)/g, '').match(/\.[a-zA-Z][\w-]*/g) || []).map(x => x.slice(1)));
     const sinPref = [...clases].filter(c => !/^rn-/.test(c) && ['pg', 'pgc', 'entra-d', 'sale-i', 'entra-f', 'ic', 'conteclado'].indexOf(c) < 0 && !/^\d/.test(c) && !/^(woff|ttf)$/.test(c));
     comprueba(!sinPref.length, 'todas las clases del CSS nuevo llevan «rn-»' + (sinPref.length ? ': ' + sinPref.join(', ') : ''));
@@ -50,7 +52,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await p.waitForSelector('[data-p="inicio"]');
       await p.waitForFunction(() => !document.getElementById('arranque'), null, { timeout: 3000 }).catch(() => { });
       const tArr = Date.now() - t0;
-      comprueba(tArr < 1100, 'el arranque se quita a tiempo (' + tArr + ' ms desde que se pide la página; el arranque en sí dura 0,45 s + 0,28 s de fundido)');
+      comprueba(tArr < 1900, 'el arranque se quita a tiempo (' + tArr + ' ms desde que se pide la página; la animación dura 0,75 s y luego el fundido)');
       comprueba(await ev(p, () => document.documentElement.dataset.tema) === m, 'el tema sigue al iPhone (' + m + ')');
       await espera(300);
 
@@ -243,7 +245,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
       comprueba(await ev(p, () => !document.querySelector('.rn-plus') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas'), 'en Ajustes no hay «+» y «Más» va activa en blanco');
-      comprueba(await ev(p, () => /prueba 0\.2\.0/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
+      comprueba(await ev(p, () => /prueba 0\.2\.1/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */
