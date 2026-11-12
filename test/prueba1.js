@@ -35,7 +35,9 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
     /* Falla si lo que se pinta (la última parte del selector) es solo una clase de estado */
     cssL.split('}').forEach(bl => { const sel = bl.split('{')[0]; sel.split(',').forEach(x => { x = x.trim(); const ult = x.split(/[\s>+~]+/).pop(); if (ESTADOS.some(e => ult === '.' + e)) sueltas.push(x); }); });
     comprueba(!sueltas.length, 'las clases de estado (rn-on, rn-ver…) no se usan solas como pieza' + (sueltas.length ? ': ' + sueltas.join(' | ') : ''));
-    const clases = new Set((cssL.replace(/url\([^)]*\)/g, '').match(/\.[a-zA-Z][\w-]*/g) || []).map(x => x.slice(1)));
+    /* Solo el CSS nuevo (diseno.css), sin las reglas que retocan las pantallas de dentro (.rn-viejo / .rn-hj) */
+    const nuevo = fs.readFileSync(R + '/src/css/diseno.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').split('}').filter(b => !/rn-viejo|rn-hj/.test(b.split('{')[0])).join('}');
+    const clases = new Set((nuevo.replace(/url\([^)]*\)/g, '').match(/\.[a-zA-Z][\w-]*/g) || []).map(x => x.slice(1)));
     const sinPref = [...clases].filter(c => !/^rn-/.test(c) && ['pg', 'pgc', 'entra-d', 'sale-i', 'entra-f', 'ic', 'conteclado'].indexOf(c) < 0 && !/^\d/.test(c) && !/^(woff|ttf)$/.test(c));
     comprueba(!sinPref.length, 'todas las clases del CSS nuevo llevan «rn-»' + (sinPref.length ? ': ' + sinPref.join(', ') : ''));
 
@@ -99,9 +101,10 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         comprueba(await ev(p, () => window.RONDA.lista('movs').some(x => x.importe === 12.5 && x.concepto === 'Farmacia')), 'Añadir gasto guarda 12,50 € «Farmacia»');
         await toca(p, '.rn-ava'); await espera(200);
         comprueba(!(await ev(p, () => window.RONDA.lista('movs').some(x => x.importe === 12.5))), '«Deshacer» quita el gasto');
-        /* Una sección que todavía no está */
-        await toca(p, '.rn-tab[data-id="compra"]');
-        comprueba(/tanda 2/.test(await aviso(p)), 'Compra avisa de que llega en la tanda 2');
+        /* Compra ya tiene su pantalla (0.2.0) */
+        await toca(p, '.rn-tab[data-id="compra"]'); await espera(500);
+        comprueba(await ev(p, () => !!document.querySelector('.rn-pg.rn-k-compra, [data-p="compra"]')), 'Compra abre su pantalla');
+        await toca(p, '.rn-tab[data-id="inicio"]'); await espera(500);
       }
       await ev(p, () => document.querySelector('[data-p="inicio"] .pgc').scrollTo(0, 0));
       await espera(200); await p.screenshot({ path: C + 'inicio_' + m + '.png' });
@@ -218,7 +221,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         await p.mouse.move(mx2, my2); await p.mouse.down(); await espera(800);
         const [cx, cy] = await centro('.rn-sc[data-id="compra"]');
         await p.mouse.move(cx, cy, { steps: 4 }); await espera(100); await p.mouse.up(); await espera(500);
-        comprueba(!(await ev(p, () => !!document.querySelector('.rn-hj'))) && /tanda 2/.test(await aviso(p)), 'soltar encima de Compra cierra la hoja y avisa de la tanda');
+        comprueba(!(await ev(p, () => !!document.querySelector('.rn-hj'))) && (await ev(p, () => !!document.querySelector('[data-p="compra"]'))), 'soltar encima de Compra cierra la hoja y abre Compra');
         /* Un toque normal sigue abriendo la hoja */
         await toca(p, '.rn-tab[data-id="mas"]'); await espera(500);
         comprueba(await ev(p, () => !!document.querySelector('.rn-hj .rn-secs')), 'un toque normal en «Más» sigue abriendo la hoja');
@@ -240,7 +243,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
       comprueba(await ev(p, () => !document.querySelector('.rn-plus') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas'), 'en Ajustes no hay «+» y «Más» va activa en blanco');
-      comprueba(await ev(p, () => /prueba 0\.1\.1/.test(document.querySelector('.rn-version').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version').textContent));
+      comprueba(await ev(p, () => /prueba 0\.2\.0/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */

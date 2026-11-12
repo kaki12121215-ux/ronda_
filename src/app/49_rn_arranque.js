@@ -11,7 +11,10 @@ function rnMedir() {
   try {
     const vert = innerHeight >= innerWidth, alto = vert ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
     const d = alto - innerHeight;
-    if (enIcono() && d > 0 && d < 120) falta = d;
+    /* 0.2.0: también se compara con el alto «grande» de la pantalla (100lvh), que en iOS 26 puede ser distinto */
+    let lvh = 0; try { const pr = document.createElement('div'); pr.style.cssText = 'position:fixed;top:0;height:100lvh;width:1px;visibility:hidden'; document.body.appendChild(pr); lvh = pr.getBoundingClientRect().height; pr.remove(); } catch (e) { }
+    const d2 = lvh - innerHeight;
+    if (enIcono()) { const m = Math.max(d > 0 && d < 120 ? d : 0, d2 > 0 && d2 < 120 ? d2 : 0); falta = m; }
   } catch (e) { }
   r.setProperty('--abajo', falta + 'px');
   /* Lo que ocupa la raya de abajo del iPhone, para que nada quede debajo */

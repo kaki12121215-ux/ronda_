@@ -1,5 +1,5 @@
 /* ============================ BASE ============================ */
-const VERSION = '0.1.1';  /* prueba del diseño nuevo */
+const VERSION = '0.2.0';  /* prueba del diseño nuevo */
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
