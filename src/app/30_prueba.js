@@ -4,7 +4,8 @@
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 1;                       /* si cambia, se vuelven a crear los datos de ejemplo */
+const DATOS_V = 2;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
 /* ---------- Sin conexión con Google ---------- */
@@ -92,13 +93,18 @@ async function cargarPrueba() {
   await DB.abrir();
   S.cfg = { url: '', token: '', persona: PI, rol: 'admin', prueba: true };
   const d = (await DB.get('datos')) || {};
-  if (d.ejemploV === DATOS_V && d.recs) { S.recs = d.recs; }
+  /* 0.1.1: si lo guardado está vacío o sin la casa y las personas (en el iPhone se llegó a guardar una copia vacía
+     antes de cargar: salía «Nuestro espacio»), se vuelven a crear los datos de ejemplo */
+  const sano = r => r && r.espacio && r.espacio.espacio && r.personas && r.personas[PI] && r.tareas;
+  if (d.ejemploV === DATOS_V && sano(d.recs)) { S.recs = d.recs; }
   else { S.recs = crearEjemplo(); }
+  RN_CARGADO = true;
   S.seq = 0; S.sid = 'prueba'; S.cola = {};
   guardarLocal(true);
 }
 /* Guardar también la marca de los datos de ejemplo */
 function guardarLocal(ya) {
+  if (!RN_CARGADO) return;
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: 0, sid: 'prueba', ejemploV: DATOS_V }); };
   if (ya) f(); else guardarT = setTimeout(f, 250);

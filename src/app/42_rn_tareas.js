@@ -128,12 +128,12 @@ ACC.verTarea = ACC.rnVerTarea;
 P.tareaVer = {
   html: p => {
     const x = dato('tareas', p.id);
-    if (!x) return rnTitulo('Tarea', { peq: 1 }) + rnCd('<p class="rn-txt" style="padding:6px 0 12px">Esta tarea ya no existe.</p>');
+    if (!x) return rnTitulo('Tarea', { peq: 1, atras: 'Tareas' }) + rnCd('<p class="rn-txt" style="padding:6px 0 12px">Esta tarea ya no existe.</p>');
     const sub = [x.fecha ? 'Para ' + rnDiaTexto(x.fecha, true) + (deISO(x.fecha) && Math.round((deISO(x.fecha) - hoy0()) / 86400000) > 1 && Math.round((deISO(x.fecha) - hoy0()) / 86400000) < 7 ? ' ' + deISO(x.fecha).getDate() : '') : 'Sin fecha', x.limite ? 'con límite ' + rnDiaTexto(x.limite, true) : ''].filter(Boolean).join(', ');
     const per = x.para === 'todos' ? null : dato('personas', x.para);
     const linea = (t, v, der, a) => '<' + (a ? 'button data-a="' + a + '" data-id="' + x.id + '"' : 'div') + ' class="rn-rw rn-li"><span class="rn-t">' + t + '</span><span class="rn-lv">' + v + '</span>' + (der === undefined ? rnFle : der) + '</' + (a ? 'button' : 'div') + '>';
     const fecha = x.fecha ? cap(DIAS[deISO(x.fecha).getDay()]) + ' ' + deISO(x.fecha).getDate() + ' de ' + MESES[deISO(x.fecha).getMonth()] + (x.hora ? ', ' + x.hora : '') : 'Sin fecha';
-    let o = rnTitulo(esc(x.titulo), { peq: 1, sub: sub, der: rnRb('editar', 'rnEditarTarea', 'Cambiar', ' data-id="' + x.id + '"') + rnRb('borrar', 'rnBorrarTarea', 'Borrar', ' data-id="' + x.id + '"') }) +
+    let o = rnTitulo(esc(x.titulo), { peq: 1, atras: 'Tareas', sub: sub, der: rnRb('editar', 'rnEditarTarea', 'Cambiar', ' data-id="' + x.id + '"') + rnRb('borrar', 'rnBorrarTarea', 'Borrar', ' data-id="' + x.id + '"') }) +
       rnCd(linea('Para', esc(x.para === 'todos' ? 'Todos' : nombreDe(x.para)), per ? rnAv(per, 26) : '', null) + linea('Cuándo', fecha, undefined, 'rnEditarTarea') +
         (x.limite ? linea('Límite', cap(DIAS[deISO(x.limite).getDay()]) + ' ' + deISO(x.limite).getDate(), undefined, 'rnEditarTarea') : '') +
         linea('Repetir', esc(textoRepe(x.repite)), undefined, 'rnEditarTarea') + linea('Solo para mí', x.solo ? 'Sí' : 'No', x.solo ? '<span class="rn-fle">' + rnIc('candado', 18, 2) + '</span>' : '', null), 'rn-k-lima rn-cdv') +

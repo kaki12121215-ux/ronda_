@@ -162,7 +162,8 @@ const rnChip = (id, s) => '<span class="rn-chip">' + rnIc(id, Math.round(s * 0.7
 const rnCab = (id, t, der) => '<div class="rn-ch">' + rnChip(id, 34) + '<span class="rn-cht">' + t + '</span>' + (der ? '<span class="rn-chd">' + der + '</span>' : '') + '</div>';
 const rnRb = (id, a, lab, extra) => '<button class="rn-rb rn-gl" data-a="' + a + '" aria-label="' + lab + '"' + (extra || '') + '>' + rnIc(id, 21, 2) + '</button>';
 /* Cabecera de sección: título grande, botones redondos y subtítulo opcional */
-const rnTitulo = (t, o) => { o = o || {}; return '<div class="rn-tit' + (o.peq ? ' rn-tit-peq' : '') + '"><h1>' + t + '</h1>' + (o.der ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' + (o.sub ? '<p class="rn-sub">' + o.sub + '</p>' : ''); };
+/* o.atras: pantalla de dentro con flecha y el nombre de donde viene («← Tareas»); los botones van a su derecha */
+const rnTitulo = (t, o) => { o = o || {}; return (o.atras ? '<div class="rn-atras"><button class="rn-atrasb" data-a="atras" aria-label="Volver a ' + o.atras + '">' + rnIc('atras', 22, 2) + '<span>' + o.atras + '</span></button>' + (o.der ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' : '') + '<div class="rn-tit' + (o.peq ? ' rn-tit-peq' : '') + (o.atras ? ' rn-tit-in' : '') + '"><h1>' + t + '</h1>' + (o.der && !o.atras ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' + (o.sub ? '<p class="rn-sub">' + o.sub + '</p>' : ''); };
 /* Avatar: la inicial sobre el color de la persona (Iña coral, Ru azul) */
 const RN_COLPER = { '#F0674B': 'coral', '#F2B824': 'amarillo', '#A6C93A': 'lima', '#2E8B57': 'verde', '#2BB5B0': 'turquesa', '#3C78C8': 'azul', '#9B86E0': 'lavanda', '#EE8AA8': 'rosa' };
 const rnKPer = p => RN_COLPER[String((p && p.color) || '').toUpperCase()] || 'azul';

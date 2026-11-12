@@ -1,5 +1,5 @@
 /* ============================ BASE ============================ */
-const VERSION = '0.1.0';  /* prueba del diseño nuevo */
+const VERSION = '0.1.1';  /* prueba del diseño nuevo */
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
@@ -188,7 +188,7 @@ function lista(col) {
 function personas() { return lista('personas').sort((a, b) => (a.alta || 0) - (b.alta || 0)); }
 function yo() { return S.cfg ? dato('personas', S.cfg.persona) : null; }
 function esAdmin() { return S.cfg && S.cfg.rol === 'admin'; }
-function espacio() { return dato('espacio', 'espacio') || { nombre: 'Nuestro espacio', tipo: 'hogar', color: COL[4] }; }
+function espacio() { return dato('espacio', 'espacio') || { nombre: 'Nuestra casa', tipo: 'hogar', color: COL[4] }; }
 
 /* Cambio hecho en este móvil: se aplica al momento y entra en la cola de envío. */
 function cambiar(col, id, campos) {

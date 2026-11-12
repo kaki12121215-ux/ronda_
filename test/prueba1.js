@@ -156,7 +156,11 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'tareaVer' && /Corregir actividades/.test(document.querySelector('[data-p="tareaVer"] h1').textContent)), 'tocar una tarea abre «Ver tarea»');
         comprueba(await ev(p, () => !!document.querySelector('[data-p="tareaVer"] .rn-nota')), 'enseña la nota');
         comprueba(await ev(p, () => !document.querySelector('.rn-barra').classList.contains('rn-oculta')), 'la barra sigue abajo');
+        comprueba(await ev(p, () => /Tareas/.test(document.querySelector('[data-p="tareaVer"] .rn-atrasb').textContent)), '0.1.1: «Ver tarea» lleva la flecha «← Tareas»');
         await p.screenshot({ path: C + 'ver_tarea_' + m + '.png' });
+        await toca(p, '[data-p="tareaVer"] .rn-atrasb'); await espera(600);
+        comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'tareas'), '0.1.1: la flecha vuelve a Tareas');
+        await toca(p, '.rn-rwt:has-text("Corregir actividades")'); await espera(600);
         await toca(p, '[data-p="tareaVer"] .rn-btnp'); await espera(600);
         comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'tareas' && window.RONDA.lista('tareas').find(x => x.titulo === 'Corregir actividades instituto').hecho), '«Marcar como hecha» la marca y vuelve a Tareas');
         await toca(p, '.rn-ava'); await espera(300);
@@ -182,6 +186,51 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         await toca(p, '.rn-plus'); await espera(600); await p.screenshot({ path: C + 'nueva_tarea_' + m + '.png' }); await toca(p, '.rn-hj .rn-x'); await espera(400);
       }
 
+      /* ---------- 0.1.1 · Mantener pulsado «Más» ---------- */
+      if (!oscuro) {
+        const centro = sel => ev(p, s => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }, sel);
+        /* Dedo (toques simulados): mantener, arrastrar hasta Ajustes y soltar encima */
+        const dedo = (fase, x, y) => ev(p, ([fase, x, y]) => { const tab = document.querySelector('.rn-tab[data-id="mas"]'); const tc = new Touch({ identifier: 7, target: tab, clientX: x, clientY: y }); return tab.dispatchEvent(new TouchEvent(fase, { touches: fase === 'touchend' ? [] : [tc], changedTouches: [tc], bubbles: true, cancelable: true })); }, [fase, x, y]);
+        const [mx, my] = await centro('.rn-tab[data-id="mas"]');
+        await dedo('touchstart', mx, my); await espera(250);
+        comprueba(!(await ev(p, () => !!document.querySelector('.rn-hj'))), 'antes de 420 ms no sale nada');
+        await espera(300);
+        comprueba(await ev(p, () => !!document.querySelector('.rn-hj .rn-secs')), 'a los 420 ms sube la hoja «Secciones» sin soltar el dedo');
+        await espera(400);
+        const [ax, ay] = await centro('.rn-sc[data-id="ajustes"]');
+        const sinPrevenir = await dedo('touchmove', ax, ay);
+        comprueba(sinPrevenir === false, 'al arrastrar, la pantalla de detrás no se mueve (el movimiento se bloquea)');
+        comprueba(await ev(p, () => document.querySelector('.rn-sc[data-id="ajustes"]').classList.contains('rn-sob')), 'la sección de debajo del dedo se resalta');
+        comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-sc.rn-on')).boxShadow === 'none'), 'mientras se arrastra, solo se resalta la de debajo');
+        await p.screenshot({ path: C + 'mas_arrastrando_' + m + '.png' });
+        await dedo('touchend', ax, ay); await espera(800);
+        comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes' && !document.querySelector('.rn-hj')), 'al soltar encima de Ajustes se abre Ajustes y la hoja se cierra');
+        /* Soltar fuera */
+        await dedo('touchstart', mx, my); await espera(800);
+        await dedo('touchmove', 200, 120); await dedo('touchend', 200, 120); await espera(600);
+        comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes' && !document.querySelector('.rn-hj')), 'al soltar fuera, la hoja se cierra sin hacer nada');
+        /* Mover el dedo antes de tiempo lo cancela */
+        await dedo('touchstart', mx, my); await espera(100); await dedo('touchmove', mx - 40, my); await espera(500);
+        comprueba(!(await ev(p, () => !!document.querySelector('.rn-hj'))), 'si el dedo se mueve antes de los 420 ms, no se abre');
+        await dedo('touchend', mx - 40, my); await espera(200);
+        /* Con ratón: soltar encima de una sección que aún no está */
+        const [mx2, my2] = await centro(".rn-tab[data-id=\"mas\"]");
+        await p.mouse.move(mx2, my2); await p.mouse.down(); await espera(800);
+        const [cx, cy] = await centro('.rn-sc[data-id="compra"]');
+        await p.mouse.move(cx, cy, { steps: 4 }); await espera(100); await p.mouse.up(); await espera(500);
+        comprueba(!(await ev(p, () => !!document.querySelector('.rn-hj'))) && /tanda 2/.test(await aviso(p)), 'soltar encima de Compra cierra la hoja y avisa de la tanda');
+        /* Un toque normal sigue abriendo la hoja */
+        await toca(p, '.rn-tab[data-id="mas"]'); await espera(500);
+        comprueba(await ev(p, () => !!document.querySelector('.rn-hj .rn-secs')), 'un toque normal en «Más» sigue abriendo la hoja');
+        await toca(p, '.rn-sc[data-id="tareas"]'); await espera(700);
+        comprueba(await ev(p, () => ['touch-action', '-webkit-touch-callout', 'user-select'].map(k => getComputedStyle(document.querySelector('.rn-tab[data-id="mas"]')).getPropertyValue(k)).join() === 'none,none,none' || getComputedStyle(document.querySelector('.rn-tab[data-id="mas"]')).touchAction === 'none'), '«Más» sin menú del iPhone, sin selección y sin mover la pantalla (A2)');
+        /* Datos: una copia vacía guardada se arregla sola */
+        await ev(p, async () => { const R = window.RONDA; await R.DB.set('datos', { recs: {}, seq: 0, sid: 'prueba', ejemploV: 2 }); });
+        await p.reload(); await p.waitForSelector('[data-p="inicio"]'); await espera(900);
+        comprueba(await ev(p, () => /Nuestra casa/.test(document.querySelector('.rn-marca').textContent) && window.RONDA.lista('tareas').length > 3), '0.1.1: si se guardó una copia vacía, vuelven los datos de ejemplo («Nuestra casa»)');
+        await toca(p, '.rn-tab[data-id="tareas"]'); await espera(500);
+      }
+
       /* ---------- Más: la hoja «Secciones» ---------- */
       await toca(p, '.rn-tab[data-id="mas"]'); await espera(500);
       comprueba(await ev(p, () => document.querySelectorAll('.rn-hj .rn-sc').length === 16), 'la hoja «Secciones» tiene las 16 secciones');
@@ -191,7 +240,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
       comprueba(await ev(p, () => !document.querySelector('.rn-plus') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas'), 'en Ajustes no hay «+» y «Más» va activa en blanco');
-      comprueba(await ev(p, () => /prueba 0\.1\.0/.test(document.querySelector('.rn-version').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version').textContent));
+      comprueba(await ev(p, () => /prueba 0\.1\.1/.test(document.querySelector('.rn-version').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */

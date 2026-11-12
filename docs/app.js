@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.1.0 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.1.1 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.1.0';  /* prueba del diseño nuevo */
+const VERSION = '0.1.1';  /* prueba del diseño nuevo */
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
@@ -217,7 +217,7 @@ function lista(col) {
 function personas() { return lista('personas').sort((a, b) => (a.alta || 0) - (b.alta || 0)); }
 function yo() { return S.cfg ? dato('personas', S.cfg.persona) : null; }
 function esAdmin() { return S.cfg && S.cfg.rol === 'admin'; }
-function espacio() { return dato('espacio', 'espacio') || { nombre: 'Nuestro espacio', tipo: 'hogar', color: COL[4] }; }
+function espacio() { return dato('espacio', 'espacio') || { nombre: 'Nuestra casa', tipo: 'hogar', color: COL[4] }; }
 
 /* Cambio hecho en este móvil: se aplica al momento y entra en la cola de envío. */
 function cambiar(col, id, campos) {
@@ -6068,7 +6068,8 @@ Object.assign(window.RONDA || (window.RONDA = {}), { animarArranque: animarArran
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 1;                       /* si cambia, se vuelven a crear los datos de ejemplo */
+const DATOS_V = 2;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
 /* ---------- Sin conexión con Google ---------- */
@@ -6156,13 +6157,18 @@ async function cargarPrueba() {
   await DB.abrir();
   S.cfg = { url: '', token: '', persona: PI, rol: 'admin', prueba: true };
   const d = (await DB.get('datos')) || {};
-  if (d.ejemploV === DATOS_V && d.recs) { S.recs = d.recs; }
+  /* 0.1.1: si lo guardado está vacío o sin la casa y las personas (en el iPhone se llegó a guardar una copia vacía
+     antes de cargar: salía «Nuestro espacio»), se vuelven a crear los datos de ejemplo */
+  const sano = r => r && r.espacio && r.espacio.espacio && r.personas && r.personas[PI] && r.tareas;
+  if (d.ejemploV === DATOS_V && sano(d.recs)) { S.recs = d.recs; }
   else { S.recs = crearEjemplo(); }
+  RN_CARGADO = true;
   S.seq = 0; S.sid = 'prueba'; S.cola = {};
   guardarLocal(true);
 }
 /* Guardar también la marca de los datos de ejemplo */
 function guardarLocal(ya) {
+  if (!RN_CARGADO) return;
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: 0, sid: 'prueba', ejemploV: DATOS_V }); };
   if (ya) f(); else guardarT = setTimeout(f, 250);
@@ -6333,7 +6339,8 @@ const rnChip = (id, s) => '<span class="rn-chip">' + rnIc(id, Math.round(s * 0.7
 const rnCab = (id, t, der) => '<div class="rn-ch">' + rnChip(id, 34) + '<span class="rn-cht">' + t + '</span>' + (der ? '<span class="rn-chd">' + der + '</span>' : '') + '</div>';
 const rnRb = (id, a, lab, extra) => '<button class="rn-rb rn-gl" data-a="' + a + '" aria-label="' + lab + '"' + (extra || '') + '>' + rnIc(id, 21, 2) + '</button>';
 /* Cabecera de sección: título grande, botones redondos y subtítulo opcional */
-const rnTitulo = (t, o) => { o = o || {}; return '<div class="rn-tit' + (o.peq ? ' rn-tit-peq' : '') + '"><h1>' + t + '</h1>' + (o.der ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' + (o.sub ? '<p class="rn-sub">' + o.sub + '</p>' : ''); };
+/* o.atras: pantalla de dentro con flecha y el nombre de donde viene («← Tareas»); los botones van a su derecha */
+const rnTitulo = (t, o) => { o = o || {}; return (o.atras ? '<div class="rn-atras"><button class="rn-atrasb" data-a="atras" aria-label="Volver a ' + o.atras + '">' + rnIc('atras', 22, 2) + '<span>' + o.atras + '</span></button>' + (o.der ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' : '') + '<div class="rn-tit' + (o.peq ? ' rn-tit-peq' : '') + (o.atras ? ' rn-tit-in' : '') + '"><h1>' + t + '</h1>' + (o.der && !o.atras ? '<div class="rn-titd">' + o.der + '</div>' : '') + '</div>' + (o.sub ? '<p class="rn-sub">' + o.sub + '</p>' : ''); };
 /* Avatar: la inicial sobre el color de la persona (Iña coral, Ru azul) */
 const RN_COLPER = { '#F0674B': 'coral', '#F2B824': 'amarillo', '#A6C93A': 'lima', '#2E8B57': 'verde', '#2BB5B0': 'turquesa', '#3C78C8': 'azul', '#9B86E0': 'lavanda', '#EE8AA8': 'rosa' };
 const rnKPer = p => RN_COLPER[String((p && p.color) || '').toUpperCase()] || 'azul';
@@ -6628,12 +6635,12 @@ ACC.verTarea = ACC.rnVerTarea;
 P.tareaVer = {
   html: p => {
     const x = dato('tareas', p.id);
-    if (!x) return rnTitulo('Tarea', { peq: 1 }) + rnCd('<p class="rn-txt" style="padding:6px 0 12px">Esta tarea ya no existe.</p>');
+    if (!x) return rnTitulo('Tarea', { peq: 1, atras: 'Tareas' }) + rnCd('<p class="rn-txt" style="padding:6px 0 12px">Esta tarea ya no existe.</p>');
     const sub = [x.fecha ? 'Para ' + rnDiaTexto(x.fecha, true) + (deISO(x.fecha) && Math.round((deISO(x.fecha) - hoy0()) / 86400000) > 1 && Math.round((deISO(x.fecha) - hoy0()) / 86400000) < 7 ? ' ' + deISO(x.fecha).getDate() : '') : 'Sin fecha', x.limite ? 'con límite ' + rnDiaTexto(x.limite, true) : ''].filter(Boolean).join(', ');
     const per = x.para === 'todos' ? null : dato('personas', x.para);
     const linea = (t, v, der, a) => '<' + (a ? 'button data-a="' + a + '" data-id="' + x.id + '"' : 'div') + ' class="rn-rw rn-li"><span class="rn-t">' + t + '</span><span class="rn-lv">' + v + '</span>' + (der === undefined ? rnFle : der) + '</' + (a ? 'button' : 'div') + '>';
     const fecha = x.fecha ? cap(DIAS[deISO(x.fecha).getDay()]) + ' ' + deISO(x.fecha).getDate() + ' de ' + MESES[deISO(x.fecha).getMonth()] + (x.hora ? ', ' + x.hora : '') : 'Sin fecha';
-    let o = rnTitulo(esc(x.titulo), { peq: 1, sub: sub, der: rnRb('editar', 'rnEditarTarea', 'Cambiar', ' data-id="' + x.id + '"') + rnRb('borrar', 'rnBorrarTarea', 'Borrar', ' data-id="' + x.id + '"') }) +
+    let o = rnTitulo(esc(x.titulo), { peq: 1, atras: 'Tareas', sub: sub, der: rnRb('editar', 'rnEditarTarea', 'Cambiar', ' data-id="' + x.id + '"') + rnRb('borrar', 'rnBorrarTarea', 'Borrar', ' data-id="' + x.id + '"') }) +
       rnCd(linea('Para', esc(x.para === 'todos' ? 'Todos' : nombreDe(x.para)), per ? rnAv(per, 26) : '', null) + linea('Cuándo', fecha, undefined, 'rnEditarTarea') +
         (x.limite ? linea('Límite', cap(DIAS[deISO(x.limite).getDay()]) + ' ' + deISO(x.limite).getDate(), undefined, 'rnEditarTarea') : '') +
         linea('Repetir', esc(textoRepe(x.repite)), undefined, 'rnEditarTarea') + linea('Solo para mí', x.solo ? 'Sí' : 'No', x.solo ? '<span class="rn-fle">' + rnIc('candado', 18, 2) + '</span>' : '', null), 'rn-k-lima rn-cdv') +
@@ -6780,10 +6787,104 @@ P.ajustes = {
 };
 ACC.rnAjPend = () => toast('Las pantallas de Ajustes llegan en la tanda 6.');
 
+/* ---- 44_rn_masrapido.js ---- */
+/* ===================== DISEÑO NUEVO · mantener pulsado «Más» (de la 1.6.1 y la 1.7.0) =====================
+   La misma lógica del gesto que 24_masrapido161.js, adaptada a la hoja «Secciones»:
+   - Mantener pulsado «Más» 420 ms: la hoja sube sola, sin levantar el dedo.
+   - Sin soltar, se arrastra hasta una sección: la de debajo se resalta (fondo y borde de su color).
+   - Al soltar encima, se abre esa sección y la hoja se cierra. Al soltar fuera, la hoja se cierra sin más.
+   - Mientras tanto: ni menú del iPhone, ni selección de texto, ni se mueve la pantalla de detrás (A2).
+   - Solo existe donde hay barra de abajo. Sin vibración: la app de hoy no la tiene en este gesto.
+   Un toque normal en «Más» sigue abriendo la hoja como siempre. */
+const RN_MR = { t: null, x0: 0, y0: 0, activo: false, sobre: null, anular: false };
+const rnMasDe = ev => ev.target && ev.target.closest && ev.target.closest('.rn-barra:not(.rn-oculta) .rn-tab[data-id="mas"]');
+function rnMrAbrir() {
+  RN_MR.activo = true; RN_MR.sobre = null; RN_MR.anular = true;
+  rnSecciones();
+  if (hojaAbierta) hojaAbierta.h.classList.add('rn-mr');
+}
+/* Resaltar la sección que hay debajo del dedo */
+function rnMrMarcar(x, y) {
+  if (!RN_MR.activo || !hojaAbierta) return;
+  const el = document.elementFromPoint(x, y), b = el && el.closest && el.closest('.rn-hj .rn-sc');
+  if (RN_MR.sobre && RN_MR.sobre !== b) RN_MR.sobre.classList.remove('rn-sob');
+  if (b) b.classList.add('rn-sob');
+  RN_MR.sobre = b;
+  const g = $('.rn-secs', hojaAbierta.h); if (g) g.classList.toggle('rn-arrastra', !!b);
+}
+function rnMrSoltar() {
+  if (!RN_MR.activo) return;
+  RN_MR.activo = false;
+  const b = RN_MR.sobre; RN_MR.sobre = null;
+  /* Al soltar encima: la hoja se cierra siempre; si la sección aún no está, sale el aviso de su tanda */
+  if (b && RN_LISTAS.indexOf(b.dataset.id) < 0) { cerrarHoja(); rnPendiente(b.dataset.id); }
+  else if (b) ACC.rnSecElegir(b);
+  else cerrarHoja();
+  setTimeout(() => { RN_MR.anular = false; }, 400);
+}
+function rnMrCancelar() { clearTimeout(RN_MR.t); RN_MR.t = null; }
+(function () {
+  /* Dedo */
+  document.addEventListener('touchstart', ev => {
+    const m = rnMasDe(ev); if (!m || ev.touches.length !== 1) return;
+    RN_MR.x0 = ev.touches[0].clientX; RN_MR.y0 = ev.touches[0].clientY;
+    rnMrCancelar(); RN_MR.t = setTimeout(() => { RN_MR.t = null; rnMrAbrir(); }, 420);
+  }, { passive: true });
+  document.addEventListener('touchmove', ev => {
+    const p = ev.touches[0];
+    if (RN_MR.t) { if (Math.hypot(p.clientX - RN_MR.x0, p.clientY - RN_MR.y0) > 12) rnMrCancelar(); return; }
+    /* Con la hoja abierta por el gesto: la pantalla de detrás no se mueve */
+    if (RN_MR.activo) { ev.preventDefault(); rnMrMarcar(p.clientX, p.clientY); }
+  }, { passive: false });
+  document.addEventListener('touchend', ev => {
+    rnMrCancelar();
+    if (!RN_MR.activo) return;
+    ev.preventDefault();
+    rnMrSoltar();
+  }, { passive: false });
+  document.addEventListener('touchcancel', () => { rnMrCancelar(); if (RN_MR.activo) { RN_MR.activo = false; cerrarHoja(); } });
+  /* Ratón (y pruebas): igual */
+  document.addEventListener('mousedown', ev => { if (!rnMasDe(ev)) return; RN_MR.x0 = ev.clientX; RN_MR.y0 = ev.clientY; rnMrCancelar(); RN_MR.t = setTimeout(() => { RN_MR.t = null; rnMrAbrir(); }, 420); });
+  document.addEventListener('mousemove', ev => { if (RN_MR.t && Math.hypot(ev.clientX - RN_MR.x0, ev.clientY - RN_MR.y0) > 12) rnMrCancelar(); if (RN_MR.activo) rnMrMarcar(ev.clientX, ev.clientY); });
+  document.addEventListener('mouseup', () => { rnMrCancelar(); if (RN_MR.activo) rnMrSoltar(); });
+  /* El toque que abrió la hoja con el gesto no puede abrirla otra vez ni elegir nada al soltar */
+  document.addEventListener('click', ev => { if (RN_MR.anular && (rnMasDe(ev) || (ev.target.closest && ev.target.closest('.rn-velo,.rn-hj')))) { ev.stopPropagation(); ev.preventDefault(); RN_MR.anular = false; } }, true);
+  /* Sin menú del iPhone sobre la barra (A2) */
+  document.addEventListener('contextmenu', ev => { if (ev.target.closest && ev.target.closest('.rn-barra')) ev.preventDefault(); });
+})();
+Object.assign(window.RONDA || (window.RONDA = {}), { RN_MR: RN_MR });
+
 /* ---- 49_rn_arranque.js ---- */
 /* ===================== DISEÑO NUEVO · arranque (pieza 05) =====================
    El círculo con los puntos y «Ronda», centrado con CSS en la pantalla física (sin medir texto: A4).
    Dura como mucho 0,75 s y se va con un fundido (A5). La animación propia del arranque llega en la tanda 8. */
+/* ---------- Medidas de la pantalla abierta desde el icono (iOS 26) ----------
+   1) Con la zona de la hora transparente, el iPhone deja la página más corta que la pantalla y abajo queda
+      una franja vacía (0.1.0: barra blanca). Se mide cuánto falta y la app se alarga hasta abajo del todo.
+   2) iOS difumina una banda debajo de la hora: el contenido empieza por debajo de esa banda. */
+function rnMedir() {
+  const r = document.documentElement.style;
+  let falta = 0;
+  try {
+    const vert = innerHeight >= innerWidth, alto = vert ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    const d = alto - innerHeight;
+    if (enIcono() && d > 0 && d < 120) falta = d;
+  } catch (e) { }
+  r.setProperty('--abajo', falta + 'px');
+  /* Lo que ocupa la raya de abajo del iPhone, para que nada quede debajo */
+  r.setProperty('--pie', falta ? '34px' : 'env(safe-area-inset-bottom)');
+  document.documentElement.classList.toggle('rn-icono', enIcono());
+}
+rnMedir();
+window.addEventListener('resize', rnMedir);
+window.addEventListener('orientationchange', () => setTimeout(rnMedir, 300));
+/* Por si el iPhone no pinta la franja: el fondo del documento con el color de abajo de la pantalla */
+function rnColorFondo() {
+  const e = Nav.pila[0], osc = rnOscuro();
+  document.documentElement.style.backgroundColor = osc ? '#0F1417' : e && e.id === 'inicio' ? '#E6F2D9' : e && e.id === 'ajustes' ? '#F7F8F9' : '#FFFFFF';
+}
+const _barra49 = Nav.barra;
+Nav.barra = function () { _barra49.call(this); try { rnColorFondo(); } catch (x) { } };
 async function rnArrancar() {
   const t0 = performance.now();
   const ar = $('#arranque');
@@ -6801,7 +6902,7 @@ async function rnArrancar() {
 document.addEventListener('contextmenu', ev => { if (ev.target.closest('.rn-barra,.rn-it,[data-lp]')) ev.preventDefault(); });
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema); } catch (e) { }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { aplicarTema(); if (Nav.actual() && !hojaAbierta) Nav.refrescar(); } });
-window.RONDA = Object.assign(window.RONDA || {}, { S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
+window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
 rnArrancar().catch(e => {
   anotar('arranque', e);
   const a = $('#arranque'); if (a) a.remove();
