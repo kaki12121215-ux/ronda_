@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.3 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.4 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.3';  /* prueba del diseño nuevo */
+const VERSION = '0.3.4';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
@@ -7385,7 +7385,7 @@ P.notas = {
     let l = lista('notas').filter(n => n.titulo || n.texto || n.html).sort((a, b) => (b.fijada ? 1 : 0) - (a.fijada ? 1 : 0) || (b.editada || 0) - (a.editada || 0));
     const total = l.length;
     if (f === 'mias') l = l.filter(n => n.por === yoId); else if (f === 'fijadas') l = l.filter(n => n.fijada); else if (f !== 'todas') l = l.filter(n => n.por === f);
-    const tarjeta = n => { const k = RN_NOTACOL[String(colorNota(n) || '').toUpperCase()] || 'lavanda'; const d = n.editada ? isoDia(new Date(n.editada)) : ''; const cuando2 = d === hoyISO() ? 'Hoy' : d === isoDia(sumaDias(hoy0(), -1)) ? 'Ayer' : d ? deISO(d).getDate() + ' ' + MESES[deISO(d).getMonth()].slice(0, 3) : ''; return '<button class="rn-nt rn-k-' + k + '" data-a="verNota" data-lp="notaMenu" data-id="' + n.id + '"><b>' + (n.fijada ? '<i class="rn-fij" aria-label="Fijada">' + rnIc('etiqueta', 13, 2.3) + '</i>' : '') + (n.emoji ? esc(n.emoji) + ' ' : '') + esc(n.titulo || 'Nota') + '</b><span class="rn-ntx">' + esc((n.texto || '').slice(0, 160)) + '</span><span class="rn-s rn-ntp">' + [cuando2, nombreDe(n.por)].filter(Boolean).map(esc).join(' · ') + '</span></button>'; };
+    const tarjeta = n => { const k = RN_NOTACOL[String(colorNota(n) || '').toUpperCase()] || 'lavanda'; const d = n.editada ? isoDia(new Date(n.editada)) : ''; const cuando2 = d === hoyISO() ? 'Hoy' : d === isoDia(sumaDias(hoy0(), -1)) ? 'Ayer' : d ? deISO(d).getDate() + ' ' + MESES[deISO(d).getMonth()].slice(0, 3) : ''; return '<button class="rn-nt rn-k-' + k + (colorNota(n) ? '' : ' rn-nt-blanca') + '" data-a="verNota" data-lp="notaMenu" data-id="' + n.id + '"><b>' + (n.fijada ? '<i class="rn-fij" aria-label="Fijada">' + rnIc('etiqueta', 13, 2.3) + '</i>' : '') + (n.emoji ? esc(n.emoji) + ' ' : '') + esc(n.titulo || 'Nota') + '</b><span class="rn-ntx">' + esc((n.texto || '').slice(0, 160)) + '</span><span class="rn-s rn-ntp">' + [cuando2, nombreDe(n.por)].filter(Boolean).map(esc).join(' · ') + '</span></button>'; };
     const c1 = l.filter((x, i) => i % 2 === 0), c2 = l.filter((x, i) => i % 2 === 1);
     return rnTitulo('Notas', { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: total + (total === 1 ? ' nota' : ' notas') }) +
       rnFiltros([['todas', 'Todas'], ['mias', 'Mías']].concat(otros.map(o => [o.id, 'De ' + o.nombre])).concat([['fijadas', 'Fijadas']]), f) +
@@ -8699,11 +8699,11 @@ ACC.rnDiloHoja = () => { cerrarHoja(); setTimeout(() => Dilo.abrir(null, true), 
     }, 1000);
   }, true);
   document.addEventListener('pointermove', ev => { if (RN_DILO.t && Math.hypot(ev.clientX - RN_DILO.x0, ev.clientY - RN_DILO.y0) > 12) cancelar(); }, true);
-  const soltar = () => {
+  const soltar = ev => {
     const armado = RN_DILO.armado; RN_DILO.armado = false;
     if (RN_DILO.t) cancelar(); RN_DILO.pulsado = false;
     /* Al soltar (un toque de verdad, que es lo que pide el iPhone para el micrófono), empieza a escuchar */
-    if (armado && Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && hayVoz()) Dilo.escuchar();
+    if (armado && (!ev || ev.pointerType !== 'touch') && Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && hayVoz()) Dilo.escuchar();   /* con el dedo, lo arranca el touchend (58_rn_033.js) */
   };
   document.addEventListener('pointerup', soltar, true); document.addEventListener('pointercancel', soltar, true);
 })();
@@ -8791,6 +8791,60 @@ ACC.notaBorrar = el => {
   cerrarHoja(); const id = Nav.actual().params.id; if (!dato('notas', id)) return;
   cambiar('notas', id, { _b: 1 }); Nav.refrescar(true); toast('Nota borrada', 'Deshacer', () => { cambiar('notas', id, { _b: 0 }); Nav.refrescar(true); });
 };
+
+/* ===================== 0.3.4 =====================
+   1. Notas: por defecto, blancas (la tarjeta y la nota abierta). Solo se tiñen si eliges un color.
+   2. La mancha de la barra: cuando tiene que cruzar el «+» (de Inicio a Más y vuelta) ya no pasa por debajo de él
+      ni tapa las pestañas de en medio: se apaga donde estaba y aparece donde va.
+   3. Dictado: empieza al levantar el dedo (touchend, que es lo que el iPhone acepta como toque); si falla, el aviso dice
+      el motivo que da el iPhone; tocar el anillo vuelve a intentarlo. Con el teclado, los botones quedan encima de él. */
+
+/* ---------- 2. La mancha ---------- */
+let RN_PILL_CLS = '';
+function rnPildora(n) {
+  const on = $('.rn-tab.rn-on', n), pil = $('.rn-pil', n), c = $('.rn-b5c', n), plus = $('.rn-plus5', n);
+  if (!on || !pil || !c) return;
+  const x = on.offsetLeft, w = on.offsetWidth, cls = pil.className;
+  pil.style.transition = 'none'; pil.style.width = w + 'px';
+  const quieta = RN_PILL_X === null || REDUCIR || RN_PILL_X === x || !x;
+  const px = plus ? plus.offsetLeft : -1, cruza = !quieta && px >= 0 && (RN_PILL_X < px) !== (x < px);
+  if (quieta) pil.style.transform = 'translateX(' + x + 'px)';
+  else if (cruza) {
+    /* Se apaga la de antes y aparece la nueva */
+    const g = document.createElement('i'); g.className = (RN_PILL_CLS || cls) + ' rn-pil-sale'; g.style.width = w + 'px'; g.style.transform = 'translateX(' + RN_PILL_X + 'px)'; c.insertBefore(g, pil); setTimeout(() => g.remove(), 200);
+    pil.style.transform = 'translateX(' + x + 'px)'; pil.classList.add('rn-pil-entra'); on.classList.add('rn-tarde'); setTimeout(() => on.classList.remove('rn-tarde'), 90);
+  } else {
+    pil.style.transform = 'translateX(' + RN_PILL_X + 'px)'; pil.getBoundingClientRect(); pil.style.transition = '';
+    on.classList.add('rn-tarde'); requestAnimationFrame(() => { pil.style.transform = 'translateX(' + x + 'px)'; setTimeout(() => on.classList.remove('rn-tarde'), 160); });
+  }
+  if (quieta || cruza) { pil.getBoundingClientRect(); pil.style.transition = ''; }
+  if (x) { RN_PILL_X = x; RN_PILL_CLS = cls; }
+}
+
+/* ---------- 3. Dictado ---------- */
+/* Levantar el dedo tras mantener pulsado el «+»: aquí empieza a escuchar */
+document.addEventListener('touchend', () => { if (Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && hayVoz() && RN_DILO.armado !== null && $('.cap', Dilo.el) && /Suelta/.test($('.cap', Dilo.el).textContent)) Dilo.escuchar(); }, true);
+/* El motivo del fallo, tal como lo da el iPhone, para poder arreglarlo */
+const _diloEsc58 = Dilo.escuchar, _diloEscr58 = Dilo.escribir;
+Dilo.escuchar = function () {
+  RN_DILO.err = '';
+  const r = _diloEsc58.apply(this, arguments);
+  if (this.rec) { const o = this.rec.onerror; this.rec.onerror = ev => { RN_DILO.err = (ev && ev.error) || ''; return o && o(ev); }; }
+  return r;
+};
+Dilo.escribir = function (aviso) {
+  if (aviso && RN_DILO.err && !/no-speech|not-allowed/.test(RN_DILO.err)) aviso += ' (motivo: ' + RN_DILO.err + ')';
+  RN_DILO.err = '';
+  return _diloEscr58.call(this, aviso);
+};
+/* Tocar el anillo: volver a escuchar (un toque de verdad) */
+document.addEventListener('click', ev => { if (Dilo.el && ev.target.closest && ev.target.closest('.rn-dilo-p .dring') && !Dilo.rec && hayVoz() && Dilo.modo !== 'piensa' && Dilo.modo !== 'res') { const a = $('#dTxt'); if (a) { Dilo.texto = a.value.trim(); a.blur(); } Dilo.escuchar(); } }, true);
+/* Con el teclado: el panel ocupa justo lo que se ve (los botones quedan encima del teclado) */
+(function () {
+  const vv = window.visualViewport; if (!vv) return;
+  const f = () => { const p = Dilo.el; if (!p) return; const kb = innerHeight - vv.height; if (kb > 80) { p.style.top = Math.round(vv.offsetTop) + 'px'; p.style.height = Math.round(vv.height) + 'px'; p.style.bottom = 'auto'; } else { p.style.top = ''; p.style.height = ''; p.style.bottom = ''; } };
+  vv.addEventListener('resize', f); vv.addEventListener('scroll', f); document.addEventListener('focusin', () => setTimeout(f, 80)); document.addEventListener('focusout', () => setTimeout(f, 80));
+})();
 
 /* ---- 59_rn_fin.js ---- */
 /* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */

@@ -1,7 +1,7 @@
 /* RONDA · prueba del diseño nuevo · service worker: abre sin conexión y recibe versiones nuevas.
    OJO: la app real está en el mismo dominio y comparte la caché del navegador. Esta prueba usa nombres que
    empiezan por «prueba_ronda_» y solo borra los suyos: nunca toca las cachés «ronda-…» de la app real. */
-const VERSION = 'prueba_ronda_0.3.3';
+const VERSION = 'prueba_ronda_0.3.4';
 const ARCHIVOS = ['./', 'index.html', 'ronda.css', 'app.js', 'manifest.webmanifest',
   'fonts/inter-400.woff', 'fonts/inter-500.woff', 'fonts/inter-600.woff', 'fonts/inter-700.woff', 'fonts/inter-display-600.woff', 'fonts/inter-display-700.woff',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon-32.png', 'lista.html'];

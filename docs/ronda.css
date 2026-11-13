@@ -1,4 +1,4 @@
-/* RONDA · prueba 0.3.3 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
+/* RONDA · prueba 0.3.4 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
 /* Ronda · diseño nuevo · valores aprobados. Ver 01_GUIA_DE_ESTILO.md.
    Nombres: --c-<color>-<tono>. Tonos: b bloque, f claro, fo muy claro, t tinta, fu fuerte, ico icono sobre blanco.
    --g-<color>-0/1/2 son los tres tonos del degradado de cabecera de cada sección. */
@@ -2103,3 +2103,20 @@ html.conteclado #capa .rn-dilo-p .dring svg { width: 84px; height: 84px; }
 .pg.notapg.tinta { --g0: color-mix(in srgb, var(--nc) 62%, #FFFFFF); --g1: color-mix(in srgb, var(--nc) 46%, #FFFFFF); --g2: color-mix(in srgb, var(--nc) 24%, #FFFFFF); }
 [data-tema="oscuro"] .pg.notapg.tinta { --g0: color-mix(in srgb, var(--nc) 38%, #0F1417); --g1: color-mix(in srgb, var(--nc) 26%, #0F1417); --g2: color-mix(in srgb, var(--nc) 12%, #0F1417); }
 .rn-fij { display: inline-flex; vertical-align: -1px; margin-right: 4px; opacity: .75; }
+
+/* =================== 0.3.4 =================== */
+/* Notas: blancas por defecto */
+.rn-nt.rn-nt-blanca { background: #FFFFFF; box-shadow: 0 0 0 1px rgba(43,58,66,.06), 0 2px 8px rgba(43,58,66,.05); }
+.rn-nt.rn-nt-blanca b { color: var(--txt); } .rn-nt.rn-nt-blanca .rn-ntx { color: var(--txt2); } .rn-nt.rn-nt-blanca .rn-ntp { color: var(--txt2); }
+[data-tema="oscuro"] .rn-nt.rn-nt-blanca { background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+[data-tema="oscuro"] .rn-nt.rn-nt-blanca b { color: var(--txt); }
+.pg.notapg:not(.tinta) { --g0: var(--fondo); --g1: var(--fondo); --g2: var(--fondo); --sf: #FFFFFF; }
+.pg.notapg:not(.tinta) .rn-atrasb { color: var(--txt); }
+.rn-viejo .tbar .cd { box-shadow: inset 0 0 0 1.5px rgba(43,58,66,.22); }
+[data-tema="oscuro"] .rn-viejo .tbar .cd { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.3); }
+/* La mancha, cuando cruza el «+»: se apaga y aparece */
+.rn-pil.rn-pil-sale { animation: rn-pil-sale .16s ease-in forwards; }
+.rn-pil.rn-pil-entra { animation: rn-pil-entra .24s var(--e-muelle) backwards; }
+@keyframes rn-pil-sale { to { opacity: 0; scale: .82; } }
+@keyframes rn-pil-entra { from { opacity: 0; scale: .82; } }
+#capa .rn-dilo-p .dring svg { cursor: pointer; }

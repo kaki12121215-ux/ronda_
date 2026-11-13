@@ -172,11 +172,11 @@ ACC.rnDiloHoja = () => { cerrarHoja(); setTimeout(() => Dilo.abrir(null, true), 
     }, 1000);
   }, true);
   document.addEventListener('pointermove', ev => { if (RN_DILO.t && Math.hypot(ev.clientX - RN_DILO.x0, ev.clientY - RN_DILO.y0) > 12) cancelar(); }, true);
-  const soltar = () => {
+  const soltar = ev => {
     const armado = RN_DILO.armado; RN_DILO.armado = false;
     if (RN_DILO.t) cancelar(); RN_DILO.pulsado = false;
     /* Al soltar (un toque de verdad, que es lo que pide el iPhone para el micrófono), empieza a escuchar */
-    if (armado && Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && hayVoz()) Dilo.escuchar();
+    if (armado && (!ev || ev.pointerType !== 'touch') && Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && hayVoz()) Dilo.escuchar();   /* con el dedo, lo arranca el touchend (58_rn_033.js) */
   };
   document.addEventListener('pointerup', soltar, true); document.addEventListener('pointercancel', soltar, true);
 })();
