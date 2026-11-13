@@ -37,6 +37,8 @@ function rnSecciones() {
       if (!RN_MAS_ELIGE) Nav.barra();
     } });
   RN_MAS_ABIERTA = true;
+  /* 0.3.3: el hueco de la barra, en píxeles (en el iPhone, con porcentajes, la hoja no crecía: aparecía de golpe) */
+  h.style.setProperty('--ct', Math.max(0, h.offsetHeight - 82) + 'px'); h.getBoundingClientRect();
   if (hojaAbierta) hojaAbierta.velo.classList.add('rn-velo-prof');
   r.classList.add('rn-mas', 'rn-prof');
   Nav.barra();
@@ -71,9 +73,10 @@ const rnPlusCentro = () => { const p = $('#nav:not(.rn-oculta) .rn-plus5'); if (
 const rnMezcla = (c1, c2, t) => { const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)), a = p(c1), b = p(c2); return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')'; };
 /* El aro de progreso alrededor del «+» (0 a 1) */
 function rnAroProgreso(c, pr, sc) {
-  const R = 26 * sc + 5, N = 96, n = Math.round(N * pr); let h = '';
+  /* 0.3.3: más gruesa y más lejos del botón, para que se vea alrededor del dedo */
+  const R = 26 * sc + 13, N = 96, n = Math.round(N * pr); let h = '';
   for (let k = 0; k < n; k++) { const a0 = k / N * 2 * Math.PI, a1 = (k + 1.25) / N * 2 * Math.PI, ci = k / N * 8; h += '<path d="M' + (c.x + R * Math.sin(a0)).toFixed(2) + ' ' + (c.y - R * Math.cos(a0)).toFixed(2) + 'A' + R + ' ' + R + ' 0 0 1 ' + (c.x + R * Math.sin(a1)).toFixed(2) + ' ' + (c.y - R * Math.cos(a1)).toFixed(2) + '" stroke="' + rnMezcla(RN_LOGO[Math.floor(ci) % 8], RN_LOGO[(Math.floor(ci) + 1) % 8], ci % 1) + '"/>'; }
-  return '<g fill="none" stroke-width="2" stroke-linecap="round" opacity=".9">' + h + '</g>';
+  return '<g fill="none" stroke-width="7" stroke-linecap="round" opacity=".95">' + h + '</g>';
 }
 /* El anillo en un punto del viaje: p (0 en el «+», 1 arriba), S escala, rot giro, m separación, a opacidad */
 function rnAnilloSvg(P0, P1, p, S, rot, tam, m, a) {

@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.2 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.3 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.2';  /* prueba del diseño nuevo */
+const VERSION = '0.3.3';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
@@ -7385,7 +7385,7 @@ P.notas = {
     let l = lista('notas').filter(n => n.titulo || n.texto || n.html).sort((a, b) => (b.fijada ? 1 : 0) - (a.fijada ? 1 : 0) || (b.editada || 0) - (a.editada || 0));
     const total = l.length;
     if (f === 'mias') l = l.filter(n => n.por === yoId); else if (f === 'fijadas') l = l.filter(n => n.fijada); else if (f !== 'todas') l = l.filter(n => n.por === f);
-    const tarjeta = n => { const k = RN_NOTACOL[String(colorNota(n) || '').toUpperCase()] || 'lavanda'; const d = n.editada ? isoDia(new Date(n.editada)) : ''; const cuando2 = d === hoyISO() ? 'Hoy' : d === isoDia(sumaDias(hoy0(), -1)) ? 'Ayer' : d ? deISO(d).getDate() + ' ' + MESES[deISO(d).getMonth()].slice(0, 3) : ''; return '<button class="rn-nt rn-k-' + k + '" data-a="verNota" data-lp="notaMenu" data-id="' + n.id + '"><b>' + (n.emoji ? esc(n.emoji) + ' ' : '') + esc(n.titulo || 'Nota') + '</b><span class="rn-ntx">' + esc((n.texto || '').slice(0, 160)) + '</span><span class="rn-s rn-ntp">' + [cuando2, nombreDe(n.por)].filter(Boolean).map(esc).join(' · ') + '</span></button>'; };
+    const tarjeta = n => { const k = RN_NOTACOL[String(colorNota(n) || '').toUpperCase()] || 'lavanda'; const d = n.editada ? isoDia(new Date(n.editada)) : ''; const cuando2 = d === hoyISO() ? 'Hoy' : d === isoDia(sumaDias(hoy0(), -1)) ? 'Ayer' : d ? deISO(d).getDate() + ' ' + MESES[deISO(d).getMonth()].slice(0, 3) : ''; return '<button class="rn-nt rn-k-' + k + '" data-a="verNota" data-lp="notaMenu" data-id="' + n.id + '"><b>' + (n.fijada ? '<i class="rn-fij" aria-label="Fijada">' + rnIc('etiqueta', 13, 2.3) + '</i>' : '') + (n.emoji ? esc(n.emoji) + ' ' : '') + esc(n.titulo || 'Nota') + '</b><span class="rn-ntx">' + esc((n.texto || '').slice(0, 160)) + '</span><span class="rn-s rn-ntp">' + [cuando2, nombreDe(n.por)].filter(Boolean).map(esc).join(' · ') + '</span></button>'; };
     const c1 = l.filter((x, i) => i % 2 === 0), c2 = l.filter((x, i) => i % 2 === 1);
     return rnTitulo('Notas', { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: total + (total === 1 ? ' nota' : ' notas') }) +
       rnFiltros([['todas', 'Todas'], ['mias', 'Mías']].concat(otros.map(o => [o.id, 'De ' + o.nombre])).concat([['fijadas', 'Fijadas']]), f) +
@@ -8564,6 +8564,8 @@ function rnSecciones() {
       if (!RN_MAS_ELIGE) Nav.barra();
     } });
   RN_MAS_ABIERTA = true;
+  /* 0.3.3: el hueco de la barra, en píxeles (en el iPhone, con porcentajes, la hoja no crecía: aparecía de golpe) */
+  h.style.setProperty('--ct', Math.max(0, h.offsetHeight - 82) + 'px'); h.getBoundingClientRect();
   if (hojaAbierta) hojaAbierta.velo.classList.add('rn-velo-prof');
   r.classList.add('rn-mas', 'rn-prof');
   Nav.barra();
@@ -8598,9 +8600,10 @@ const rnPlusCentro = () => { const p = $('#nav:not(.rn-oculta) .rn-plus5'); if (
 const rnMezcla = (c1, c2, t) => { const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)), a = p(c1), b = p(c2); return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')'; };
 /* El aro de progreso alrededor del «+» (0 a 1) */
 function rnAroProgreso(c, pr, sc) {
-  const R = 26 * sc + 5, N = 96, n = Math.round(N * pr); let h = '';
+  /* 0.3.3: más gruesa y más lejos del botón, para que se vea alrededor del dedo */
+  const R = 26 * sc + 13, N = 96, n = Math.round(N * pr); let h = '';
   for (let k = 0; k < n; k++) { const a0 = k / N * 2 * Math.PI, a1 = (k + 1.25) / N * 2 * Math.PI, ci = k / N * 8; h += '<path d="M' + (c.x + R * Math.sin(a0)).toFixed(2) + ' ' + (c.y - R * Math.cos(a0)).toFixed(2) + 'A' + R + ' ' + R + ' 0 0 1 ' + (c.x + R * Math.sin(a1)).toFixed(2) + ' ' + (c.y - R * Math.cos(a1)).toFixed(2) + '" stroke="' + rnMezcla(RN_LOGO[Math.floor(ci) % 8], RN_LOGO[(Math.floor(ci) + 1) % 8], ci % 1) + '"/>'; }
-  return '<g fill="none" stroke-width="2" stroke-linecap="round" opacity=".9">' + h + '</g>';
+  return '<g fill="none" stroke-width="7" stroke-linecap="round" opacity=".95">' + h + '</g>';
 }
 /* El anillo en un punto del viaje: p (0 en el «+», 1 arriba), S escala, rot giro, m separación, a opacidad */
 function rnAnilloSvg(P0, P1, p, S, rot, tam, m, a) {
@@ -8743,6 +8746,51 @@ async function rnArrancar() {
     setTimeout(() => pg.classList.remove('rn-bv-entra'), 1600);
   } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 320); }
 }
+
+/* ---- 58_rn_033.js ---- */
+/* ===================== 0.3.3 · arreglos tras probar la 0.3.2 en el iPhone =====================
+   1. Arranque: los archivos salen de lo guardado en el móvil (antes se pedían a internet cada vez y la pantalla se quedaba
+      en blanco mientras tanto). Cuando hay versión nueva, se descarga por detrás y la app se recarga sola al abrir.
+   2. «Más»: la hoja crece de verdad desde la barra también en el iPhone.
+   3. El aro del «+» al mantener pulsado: bastante más grueso y más separado, para que se vea alrededor del dedo.
+   4. Notas: el menú de una nota desde la lista (mantener pulsada) fijaba mal («Escribe algo primero»). Ahora fija, cambia
+      el color, comparte y borra desde la lista. La nota abierta se tiñe de su color. Las fijadas llevan su marca. */
+
+/* ---------- 1. Versión nueva: recargar sola, solo al abrir y si no se está haciendo nada ---------- */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  const habia = !!navigator.serviceWorker.controller, t0 = Date.now(); let hecho = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habia || hecho) return; hecho = true;
+    const ae = document.activeElement, escribiendo = ae && (ae.isContentEditable || /INPUT|TEXTAREA/.test(ae.tagName));
+    if (Date.now() - t0 < 15000 && !escribiendo && !hojaAbierta && !Dilo.el) location.reload();
+    else toast('Hay una versión nueva. Cierra la app y ábrela otra vez.');
+  });
+})();
+
+/* ---------- 4. Notas: el menú desde la lista ---------- */
+const rnEnNota = () => { const a = Nav.actual(); return !!(a && a.id === 'nota'); };
+const _notaMenu58 = ACC.notaMenu, _notaFijar58 = ACC.notaFijar, _notaColor58 = ACC.notaColor, _notaBorrar58 = ACC.notaBorrar;
+ACC.notaMenu = el => {
+  if (!rnEnNota() && el && el.dataset && el.dataset.id) { const p = Nav.actual().params, n = dato('notas', el.dataset.id); if (!n) return; p.id = el.dataset.id; p.color = colorNota(n); }
+  return _notaMenu58(el);
+};
+ACC.notaFijar = el => {
+  if (rnEnNota()) return _notaFijar58(el);
+  cerrarHoja(); const id = Nav.actual().params.id, n = dato('notas', id); if (!n) return;
+  cambiar('notas', id, { fijada: !n.fijada }); Nav.refrescar(true); toast(n.fijada ? 'Ya no está fijada' : 'Fijada', null, null, 'hecho');
+};
+ACC.notaColor = el => {
+  if (rnEnNota()) return _notaColor58(el);
+  const p = Nav.actual().params; p.color = el.dataset.c; if (dato('notas', p.id)) cambiar('notas', p.id, { color: el.dataset.c });
+  $$('[data-a="notaColor"]').forEach(b => b.classList.toggle('on', b === el));
+  setTimeout(() => { cerrarHoja(); Nav.refrescar(true); }, 180);
+};
+ACC.notaBorrar = el => {
+  if (rnEnNota()) return _notaBorrar58(el);
+  cerrarHoja(); const id = Nav.actual().params.id; if (!dato('notas', id)) return;
+  cambiar('notas', id, { _b: 1 }); Nav.refrescar(true); toast('Nota borrada', 'Deshacer', () => { cambiar('notas', id, { _b: 0 }); Nav.refrescar(true); });
+};
 
 /* ---- 59_rn_fin.js ---- */
 /* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */

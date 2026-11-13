@@ -363,9 +363,9 @@ html.rn-prof-nav #nav { transform: translateY(-14px) scale(.965); }
 html.rn-mas #nav { z-index: 65; }
 html.rn-mas .rn-b5c { background: transparent; box-shadow: none; }
 .rn-hj.rn-gl.rn-hj-mas { transform: none; background: #FFFFFF; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
-  clip-path: inset(calc(100% - 82px) 16px 16px 16px round 33px); transition: clip-path .26s var(--e-salir); }
+  -webkit-clip-path: inset(var(--ct, 400px) 16px 16px 16px round 33px 33px 33px 33px); clip-path: inset(var(--ct, 400px) 16px 16px 16px round 33px 33px 33px 33px); transition: clip-path .26s var(--e-salir), -webkit-clip-path .26s var(--e-salir); will-change: clip-path; }
 [data-tema="oscuro"] .rn-hj.rn-gl.rn-hj-mas { background: #232C31; }
-.rn-hj.rn-gl.rn-hj-mas.rn-ver { transform: none; clip-path: inset(0 0 0 0 round 32px 32px 0 0); transition: clip-path .5s var(--e-muelle); }
+.rn-hj.rn-gl.rn-hj-mas.rn-ver { transform: none; -webkit-clip-path: inset(0px 0px 0px 0px round 32px 32px 0px 0px); clip-path: inset(0px 0px 0px 0px round 32px 32px 0px 0px); transition: clip-path .5s var(--e-muelle), -webkit-clip-path .5s var(--e-muelle); }
 .rn-hj-mas .rn-hjc { padding-bottom: 100px; }
 .rn-hj-mas :is(.rn-hjcab, .rn-tirador) { opacity: 0; transition: opacity .1s ease; }
 .rn-hj-mas.rn-ver :is(.rn-hjcab, .rn-tirador) { opacity: 1; transition: opacity .28s ease .16s; }
@@ -442,3 +442,11 @@ html.conteclado #capa .rn-dilo-p .dring svg { width: 84px; height: 84px; }
   .rn-hj-mas.rn-ver .rn-sc, #capa .rn-dilo-p.ver .dring::before, .rn-plus5.rn-plus-vuelve { animation: none !important; }
   .rn-plus5.rn-cargando, .rn-plus5.rn-cargando svg { transition: none; transform: none; }
 }
+
+/* =================== 0.3.3 =================== */
+/* Arranque: la palabra se va antes que el fondo, para que no se quede encima de Inicio */
+#arranque.rn-anim5.rn-fuera .rn-arr5 { opacity: 0; transition: opacity .12s ease-in, transform .19s ease-in; }
+/* Notas: la nota abierta se tiñe de su color; las fijadas llevan su marca */
+.pg.notapg.tinta { --g0: color-mix(in srgb, var(--nc) 62%, #FFFFFF); --g1: color-mix(in srgb, var(--nc) 46%, #FFFFFF); --g2: color-mix(in srgb, var(--nc) 24%, #FFFFFF); }
+[data-tema="oscuro"] .pg.notapg.tinta { --g0: color-mix(in srgb, var(--nc) 38%, #0F1417); --g1: color-mix(in srgb, var(--nc) 26%, #0F1417); --g2: color-mix(in srgb, var(--nc) 12%, #0F1417); }
+.rn-fij { display: inline-flex; vertical-align: -1px; margin-right: 4px; opacity: .75; }
