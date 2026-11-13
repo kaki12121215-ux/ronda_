@@ -1,4 +1,4 @@
-/* RONDA · prueba 0.3.1 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
+/* RONDA · prueba 0.3.2 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
 /* Ronda · diseño nuevo · valores aprobados. Ver 01_GUIA_DE_ESTILO.md.
    Nombres: --c-<color>-<tono>. Tonos: b bloque, f claro, fo muy claro, t tinta, fu fuerte, ico icono sobre blanco.
    --g-<color>-0/1/2 son los tres tonos del degradado de cabecera de cada sección. */
@@ -1939,35 +1939,6 @@ html.rn-sin-trans *, html.rn-sin-trans *::before, html.rn-sin-trans *::after { t
 }
 /* Mientras algo se mueve, sin desenfoque */
 html.rn-moviendo :is(.rn-gl, .rn-aviso, .rn-hj) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-/* Dilo (0.3.1): una hoja más, abajo y entera, con el fondo difuminado */
-#capa .rn-dilo-v { position: fixed; inset: 0; background: rgba(15,20,23,.22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; transition: opacity .26s ease-out; }
-#capa .rn-dilo-v.ver { opacity: 1; }
-#capa .rn-dilo-p { position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(100% - max(env(safe-area-inset-top), 20px) - 24px - var(--kb, 0px)); display: flex; flex-direction: column;
-  background: var(--cristal-hoja); border-radius: var(--r-hoja) var(--r-hoja) 0 0; padding: 10px 20px calc(18px + var(--pie, env(safe-area-inset-bottom))); box-shadow: 0 -10px 30px rgba(43,58,66,.14);
-  transform: translateY(105%); transition: transform .26s var(--e-salir); font-family: var(--f-texto); color: var(--txt); z-index: 2; }
-#capa .rn-dilo-p.ver { transform: none; transition: transform .42s var(--e-muelle); }
-#capa .rn-dilo-p .grab { display: block; width: 38px; height: 5px; border-radius: 3px; background: rgba(43,58,66,.22); margin: 0 auto 6px; flex: none; }
-#capa .rn-dilo-p .dx { position: absolute; right: 12px; top: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-#capa .rn-dilo-p .dring { display: flex; justify-content: center; margin: 14px 0 10px; flex: none; }
-#capa .rn-dilo-p .dring svg { width: 120px; height: 120px; }
-#capa .rn-dilo-p .dcuerpo { flex: 1; overflow-y: auto; min-height: 0; text-align: center; }
-#capa .rn-dilo-p .dbtns { display: flex; gap: 10px; padding-top: 12px; flex: none; }
-#capa .rn-dilo-p .dbtns .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 48px; border-radius: 999px; font-weight: 700; font-size: 13.5px; border: 0; }
-#capa .rn-dilo-p .btn.pri { background: #2B3A42; color: #FFFFFE; }
-#capa .rn-dilo-p .btn.sec { background: #FFFFFF; color: var(--txt); box-shadow: 0 0 0 1px rgba(43,58,66,.08); }
-[data-tema="oscuro"] #capa .rn-dilo-p .btn.pri { background: #EEF2F4; color: #1B2226; }
-[data-tema="oscuro"] #capa .rn-dilo-p .btn.sec { background: rgba(255,255,255,.09); color: var(--txt); }
-[data-tema="oscuro"] #capa .rn-dilo-p .grab { background: rgba(255,255,255,.25); }
-#capa .rn-dilo-p :is(.cap, .mu) { color: var(--txt2); }
-#capa .rn-dilo-p .live { font: 600 19px/1.35 var(--f-titulo); }
-#capa .rn-dilo-p textarea { width: 100%; border: 0; outline: 0; border-radius: 14px; padding: 12px; background: #FFFFFF; box-shadow: 0 0 0 1px rgba(43,58,66,.08); font: 500 15px/1.4 var(--f-texto); color: var(--txt); }
-[data-tema="oscuro"] #capa .rn-dilo-p textarea { background: rgba(255,255,255,.09); }
-/* En oscuro, la flecha de volver y el subtítulo de las neutras se leen bien */
-[data-tema="oscuro"] .rn-aj .rn-atrasb, [data-tema="oscuro"] .rn-aj .rn-sub { color: var(--txt) !important; opacity: 1 !important; }
-.rn-aj .rn-atrasb { color: var(--txt); }
-/* Bienvenida, presentación y «ya no está conectado»: sobre el fondo de Inicio */
-:is([data-p="bienvenida"], [data-p="onb"], [data-p="anulado"]) { background: var(--fondo); }
-
 /* =================== 0.3.1 =================== */
 /* Arranque: el fondo de Inicio desde el primer momento (antes de que cargue la app) y la palabra ya puesta */
 #arranque { background:
@@ -2031,3 +2002,96 @@ body:has(#nav.rn-oculta) .rn-aviso { bottom: calc(16px + 48px + 14px + var(--pie
 html.rn-kb-nota #app { top: var(--vvy, 0px); height: var(--vvh, 100%) !important; }
 html.rn-kb-nota .pg.notapg .tbar { padding-bottom: 0 !important; }
 html.rn-kb-nota .pg.notapg .pgc { padding-bottom: 90px; }
+
+/* =================== 0.3.2 · «Más», Dilo desde el «+» y el arranque =================== */
+/* Profundidad: la pantalla da un paso atrás y el velo la difumina */
+#app { transition: transform .5s var(--e-entrar); }
+html.rn-prof #app { transform: scale(.965); }
+#nav { transition: transform .5s var(--e-entrar); }
+html.rn-prof-nav #nav { transform: translateY(-14px) scale(.965); }
+.rn-velo.rn-velo-prof { background: rgba(255,255,255,.38); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transition: opacity .3s ease-out; }
+.rn-velo.rn-velo-prof.rn-ver { transition: opacity .5s var(--e-entrar); }
+[data-tema="oscuro"] .rn-velo.rn-velo-prof { background: rgba(15,20,23,.5); }
+/* «Más»: la barra se abre en la hoja. La hoja está en su sitio y se descubre desde el hueco de la barra */
+html.rn-mas #nav { z-index: 65; }
+html.rn-mas .rn-b5c { background: transparent; box-shadow: none; }
+.rn-hj.rn-gl.rn-hj-mas { transform: none; background: #FFFFFF; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  clip-path: inset(calc(100% - 82px) 16px 16px 16px round 33px); transition: clip-path .26s var(--e-salir); }
+[data-tema="oscuro"] .rn-hj.rn-gl.rn-hj-mas { background: #232C31; }
+.rn-hj.rn-gl.rn-hj-mas.rn-ver { transform: none; clip-path: inset(0 0 0 0 round 32px 32px 0 0); transition: clip-path .5s var(--e-muelle); }
+.rn-hj-mas .rn-hjc { padding-bottom: 100px; }
+.rn-hj-mas :is(.rn-hjcab, .rn-tirador) { opacity: 0; transition: opacity .1s ease; }
+.rn-hj-mas.rn-ver :is(.rn-hjcab, .rn-tirador) { opacity: 1; transition: opacity .28s ease .16s; }
+.rn-hj-mas .rn-sc { opacity: 0; transition: opacity .1s ease, transform .12s ease-out, background-color .12s; }
+.rn-hj-mas.rn-ver .rn-sc { opacity: 1; animation: rn-celda .38s var(--e-muelle) backwards; animation-delay: var(--d, 0ms); }
+@keyframes rn-celda { from { opacity: 0; transform: translate(var(--ux, 0px), var(--uy, 0px)) scale(.82); } }
+/* Mantener pulsado el «+» */
+#rn-vuelo { position: fixed; left: 0; top: 0; z-index: 80; pointer-events: none; overflow: visible; }
+.rn-plus5.rn-cargando { transform: scale(.88); transition: transform 1s linear; }
+.rn-plus5.rn-cargando svg { transform: rotate(45deg); transition: transform 1s var(--e-rellenar); }
+#nav:has(.rn-cargando) .rn-tab { opacity: .7; transition: opacity .3s ease; }
+.rn-plus5.rn-plus-ido { opacity: 0; transition: opacity .12s ease; }
+.rn-plus5.rn-plus-vuelve { animation: rn-vuelve .3s var(--e-entrar); }
+@keyframes rn-vuelve { from { opacity: 0; transform: scale(1.06); } }
+.rn-destello { position: fixed; z-index: 81; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; pointer-events: none;
+  box-shadow: 0 0 16px 3px rgba(181,163,244,.5), 0 0 16px 3px rgba(255,203,61,.35), inset 0 0 10px rgba(116,171,247,.4); animation: rn-destello .24s ease-out forwards; }
+@keyframes rn-destello { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.3); } }
+/* Dilo: a pantalla completa. El anillo arriba, lo que dices debajo y los botones abajo */
+#capa .rn-dilo-v { position: fixed; inset: 0; background: rgba(255,255,255,.55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); opacity: 0; transition: opacity .3s ease-out; }
+[data-tema="oscuro"] #capa .rn-dilo-v { background: rgba(15,20,23,.6); }
+#capa .rn-dilo-v.ver { opacity: 1; transition: opacity .5s var(--e-entrar); }
+#capa .rn-dilo-p { position: fixed; left: 0; right: 0; top: 0; bottom: var(--kb, 0px); z-index: 2; display: flex; flex-direction: column; background: none; transform: none; border-radius: 0; box-shadow: none; max-height: none; height: auto;
+  padding: calc(max(env(safe-area-inset-top), 20px) + 96px) 22px calc(20px + var(--pie, env(safe-area-inset-bottom))); font-family: var(--f-texto); color: var(--txt); opacity: 0; transition: opacity .2s ease-in, padding .3s var(--e-entrar); }
+#capa .rn-dilo-p.ver { opacity: 1; transition: opacity .25s ease-out, padding .3s var(--e-entrar); }
+#capa .rn-dilo-p:has(.dring.peq), html.conteclado #capa .rn-dilo-p { padding-top: calc(max(env(safe-area-inset-top), 20px) + 44px); }
+#capa .rn-dilo-p .grab { display: none; }
+#capa .rn-dilo-p .dx { position: absolute; right: 14px; top: calc(max(env(safe-area-inset-top), 20px) + 30px); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(43,58,66,.07); color: var(--txt); border: 0; }
+[data-tema="oscuro"] #capa .rn-dilo-p .dx { background: rgba(255,255,255,.12); }
+#capa .rn-dilo-p .dring { position: relative; display: flex; justify-content: center; flex: none; margin: 0 0 26px; }
+#capa .rn-dilo-p .dring svg { position: relative; width: 146px; height: 146px; overflow: visible; transition: opacity .1s ease, width .3s var(--e-entrar), height .3s var(--e-entrar); }
+#capa .rn-dilo-p .dring.rn-espera-vuelo svg, #capa .rn-dilo-cierra .dring svg { opacity: 0; transition: none; }
+#capa .rn-dilo-p .dring::before { content: ''; position: absolute; left: 50%; top: 50%; width: 170px; height: 170px; margin: -85px 0 0 -85px; border-radius: 50%; filter: blur(40px); opacity: 0;
+  background: conic-gradient(#FF7D5E, #FFCB3D, #B9DE4A, #62D08D, #4AD3CD, #74ABF7, #B5A3F4, #F99DBA, #FF7D5E); transition: opacity .5s ease .5s; }
+#capa .rn-dilo-p.ver .dring:not(.peq)::before { opacity: .3; animation: rn-respira 2.4s ease-in-out infinite alternate; }
+@keyframes rn-respira { from { transform: scale(.95); } to { transform: scale(1.05); } }
+#capa .rn-dilo-p .dring.peq { margin-bottom: 12px; }
+#capa .rn-dilo-p .dring.peq svg { width: 60px; height: 60px; }
+html.conteclado #capa .rn-dilo-p .dring svg { width: 84px; height: 84px; }
+#capa .rn-dilo-p .dcuerpo { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; text-align: center; }
+#capa .rn-dilo-p .dcuerpo > * { flex: none; }
+#capa .rn-dilo-p .live { order: 2; font: 600 22px/1.32 var(--f-titulo); letter-spacing: -.015em; color: var(--txt); margin: 0; }
+#capa .rn-dilo-p .cap { order: 1; font-size: 13px; font-weight: 500; color: var(--txt2); margin: 0 0 10px; }
+#capa .rn-dilo-p .fld + .cap { margin-top: 10px; }
+#capa .rn-dilo-p h3 { text-align: left; }
+#capa .rn-dilo-p .card { text-align: left; }
+#capa .rn-dilo-p :is(.dcuerpo, .dbtns, .dx) { opacity: 0; transition: opacity .16s ease; }
+#capa .rn-dilo-p.ver :is(.dcuerpo, .dbtns, .dx) { opacity: 1; transition: opacity .3s ease .3s; }
+#capa .rn-dilo-p .dbtns { display: flex; gap: 10px; padding-top: 12px; flex: none; }
+#capa .rn-dilo-p .dbtns .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 48px; border-radius: 999px; font: 700 14px var(--f-texto); border: 0; margin: 0; }
+#capa .rn-dilo-p .btn.pri { background: #2B3A42; color: #FFFFFE; box-shadow: none; }
+#capa .rn-dilo-p .btn.sec { background: #FFFFFF; color: #2B3A42; box-shadow: 0 0 0 1px rgba(43,58,66,.10), 0 2px 8px rgba(43,58,66,.06); }
+[data-tema="oscuro"] #capa .rn-dilo-p .btn.pri { background: #EEF2F4; color: #1B2226; }
+[data-tema="oscuro"] #capa .rn-dilo-p .btn.sec { background: rgba(255,255,255,.10); color: #EEF2F4; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+#capa .rn-dilo-p textarea { width: 100%; border: 0; outline: 0; background: none; font: 500 16px/1.4 var(--f-texto); color: var(--txt); resize: none; }
+#capa .rn-dilo-p .fld { background: #FFFFFF; border-radius: 16px; padding: 10px 14px; text-align: left; box-shadow: 0 0 0 1px rgba(43,58,66,.08); display: block; }
+[data-tema="oscuro"] #capa .rn-dilo-p .fld { background: rgba(255,255,255,.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,.10); }
+/* Dilo en la hoja «Añadir» y el micrófono de Compra (ya funciona) */
+.rn-dilo-fila { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(43,58,66,.045); text-align: left; }
+[data-tema="oscuro"] .rn-dilo-fila { background: rgba(255,255,255,.07); }
+.rn-dilo-fila .rn-t { display: block; font-size: 14px; font-weight: 600; } .rn-dilo-fila .rn-n { display: block; font-size: 11.5px; color: var(--txt2); }
+.rn-dilo-pts { display: flex; flex: none; }
+.rn-qmic { opacity: 1; }
+/* Arranque: se va sin hueco; en la bienvenida, la palabra se desliza a su sitio */
+#arranque.rn-anim5.rn-fuera { opacity: 0; transition: opacity .28s ease-in; }
+#arranque.rn-a-bienv { background: none !important; pointer-events: none; }
+#arranque.rn-a-bienv .rn-aurora { opacity: 0; transition: opacity .4s ease; }
+#arranque.rn-a-bienv .rn-arr5 { transition: transform .6s var(--e-entrar); }
+.rn-bv-entra .rn-bienv-s { animation: rn-bloque .45s ease-out .35s backwards; }
+.rn-bv-entra .rn-pie-btns > * { animation: rn-bloque .45s ease-out .45s backwards; }
+.rn-bv-entra .rn-pie-btns > :nth-child(2) { animation-delay: .53s; } .rn-bv-entra .rn-pie-btns > :nth-child(3) { animation-delay: .61s; }
+@media (prefers-reduced-motion: reduce) {
+  #app, #nav { transition: none; transform: none !important; }
+  .rn-hj.rn-gl.rn-hj-mas, .rn-hj.rn-gl.rn-hj-mas.rn-ver { clip-path: none !important; }
+  .rn-hj-mas.rn-ver .rn-sc, #capa .rn-dilo-p.ver .dring::before, .rn-plus5.rn-plus-vuelve { animation: none !important; }
+  .rn-plus5.rn-cargando, .rn-plus5.rn-cargando svg { transition: none; transform: none; }
+}

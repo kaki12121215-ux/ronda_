@@ -59,7 +59,7 @@ document.addEventListener('touchstart', ev => { const m = ev.target.closest && e
 const _plus55 = ACC.rnPlus;
 ACC.rnPlus = el => {
   const r = _plus55(el);
-  setTimeout(() => { if (hojaAbierta) { const p = $('.rn-plus5'); if (p) { p.classList.add('rn-x45'); const o = hojaAbierta.alCerrar; hojaAbierta.alCerrar = () => { p.classList.remove('rn-x45'); if (o) o(); }; } } }, 30);
+  setTimeout(() => { if (hojaAbierta && !RN_MAS_ABIERTA) { const p = $('.rn-plus5'); if (p) { p.classList.add('rn-x45'); const o = hojaAbierta.alCerrar; hojaAbierta.alCerrar = () => { p.classList.remove('rn-x45'); if (o) o(); }; } } }, 30);
   return r;
 };
 

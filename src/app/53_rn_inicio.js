@@ -38,8 +38,7 @@ ACC.rnWAbrir = (el, ev) => {
 /* Cabecera de Inicio con Dilo (opción A: micrófono en un círculo de cristal) */
 function rnCabInicio() {
   const e = espacio(), ps = personas(), yoN = ((yo() || {}).nombre || '').split(' ')[0];
-  return '<div class="rn-icab"><div class="rn-marca"><span class="rn-logo">' + rnPuntos(24, .125) + '</span><b>' + esc(e.nombre || '') + '</b></div><div class="rn-avs">' + ps.map(p => rnAv(p, 32)).join('') +
-    '<button class="rn-rb rn-gl rn-dilo" data-a="rnDilo" aria-label="Dilo">' + rnIc('microfono', 20, 2) + '</button></div></div>' +
+  return '<div class="rn-icab"><div class="rn-marca"><span class="rn-logo">' + rnPuntos(24, .125) + '</span><b>' + esc(e.nombre || '') + '</b></div><div class="rn-avs">' + ps.map(p => rnAv(p, 32)).join('') + '</div></div>' +   /* 0.3.2: Dilo ya no va aquí: se abre manteniendo pulsado el «+» */
     '<p class="rn-fecha">' + fechaLarga(new Date()) + '</p><h1 class="rn-saludo">' + saludo() + (yoN ? ', ' + esc(yoN) : '') + '</h1>';
 }
 

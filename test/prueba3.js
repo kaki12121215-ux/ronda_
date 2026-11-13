@@ -68,7 +68,11 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
       await p.screenshot({ path: C + m + '_menu.png' });
       /* Compra: el micrófono gris */
       await ev(() => window.RONDA.Nav.raiz('compra')); await espera(500);
-      comprueba(await ev(() => parseFloat(getComputedStyle(document.querySelector('.rn-qmic')).opacity) < .5), 'el micrófono de Compra sale gris');
+      /* 0.3.2: el micrófono de Compra abre Dilo (a pantalla completa) */
+      await toca('.rn-qmic'); await espera(700);
+      comprueba(await ev(() => !!document.querySelector('#capa .rn-dilo-p.ver') && document.documentElement.classList.contains('rn-prof')), 'el micrófono de Compra abre Dilo y la pantalla da un paso atrás');
+      await ev(() => window.RONDA.Dilo.cerrar()); await espera(600);
+      comprueba(await ev(() => !document.querySelector('.rn-dilo-p') && !document.documentElement.classList.contains('rn-prof')), 'al cerrar Dilo todo vuelve a su sitio');
       comprueba(await ev(() => !document.querySelector('.rn-plus-no') && !!document.querySelector('.rn-plus5')), 'en Compra el «+» es el de siempre');
 
       /* ---------- Selector de emoji ---------- */

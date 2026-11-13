@@ -34,7 +34,7 @@ function rnPalBolas(t, larga) {
 /* La palabra entera, quieta (sirve también para la bienvenida y la captura) */
 function rnPalabra(px, cls) {
   const P0 = RN_PAL, w = (P0.vw / 2048 * px).toFixed(1), h = (P0.vh / 2048 * px).toFixed(1);
-  return '<svg class="' + (cls || 'rn-pal') + '" width="' + w + '" height="' + h + '" viewBox="' + P0.vx + ' ' + P0.vy + ' ' + P0.vw + ' ' + P0.vh + '" role="img" aria-label="Ronda"><g class="rn-pal-l" transform="scale(1 -1)">' + RN_PAL_TRAZOS.join('') + '</g><g class="rn-pal-b">' + rnPalBolas(9, false).g + '</g></svg>';
+  return '<svg class="' + (cls || 'rn-pal') + '" width="' + w + '" height="' + h + '" viewBox="' + P0.vx + ' ' + P0.vy + ' ' + P0.vw + ' ' + P0.vh + '" role="img" aria-label="Ronda"><g class="rn-pal-l" transform="scale(1 -1)">' + RN_PAL_TRAZOS.map(x => '<g>' + x + '</g>').join('') + '</g><g class="rn-pal-b">' + rnPalBolas(9, false).g + '</g></svg>';
 }
 function rnAnimarArranque(ar) {
   return new Promise(ok => {
@@ -43,7 +43,7 @@ function rnAnimarArranque(ar) {
     const pre = !!ar.querySelector('.rn-arr-pre');   /* 0.3.1: la palabra ya estaba puesta en index.html mientras cargaba */
     ar.classList.add('rn-anim', 'rn-anim5');
     ar.innerHTML = rnAurora() + '<div class="rn-arr5">' + rnPalabra(RN_PAL_PX) + '</div>';
-    const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l path', ar);
+    const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l > g', ar);   /* 0.3.2: se mueve el grupo, no el trazo (mover el trazo le quitaba su sitio y las letras se amontonaban) */
     let tA = 0;
     const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9, false).g; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
     if (REDUCIR) { svg.style.opacity = 0; requestAnimationFrame(() => { svg.style.transition = 'opacity .4s'; svg.style.opacity = 1; }); setTimeout(fin, 420); return; }
