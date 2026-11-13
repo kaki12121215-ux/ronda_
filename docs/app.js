@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.6 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.7 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.6';  /* prueba del diseño nuevo */
+const VERSION = '0.3.7';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
