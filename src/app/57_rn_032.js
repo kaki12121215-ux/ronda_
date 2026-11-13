@@ -219,5 +219,5 @@ async function rnArrancar() {
     org.style.transform = 'translate(calc(-50% + ' + (b.left + b.width / 2 - a.left - a.width / 2).toFixed(1) + 'px), calc(-50% + ' + (b.top + b.height / 2 - a.top - a.height / 2).toFixed(1) + 'px)) scale(' + (b.width / a.width).toFixed(4) + ')';
     setTimeout(() => { pal.style.opacity = ''; ar.remove(); }, 640);
     setTimeout(() => pg.classList.remove('rn-bv-entra'), 1600);
-  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 420); }
+  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 620); }
 }

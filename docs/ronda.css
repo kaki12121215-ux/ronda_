@@ -1,4 +1,4 @@
-/* RONDA · prueba 0.3.5 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
+/* RONDA · prueba 0.3.6 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
 /* Ronda · diseño nuevo · valores aprobados. Ver 01_GUIA_DE_ESTILO.md.
    Nombres: --c-<color>-<tono>. Tonos: b bloque, f claro, fo muy claro, t tinta, fu fuerte, ico icono sobre blanco.
    --g-<color>-0/1/2 son los tres tonos del degradado de cabecera de cada sección. */
@@ -2130,3 +2130,16 @@ html.conteclado #capa .rn-dilo-p .dring svg { width: 84px; height: 84px; }
 #capa .rn-dilo-p .dring.rn-toca { animation: rn-toca 1.6s ease-in-out infinite; }
 @keyframes rn-toca { 0%, 100% { scale: 1; } 50% { scale: 1.06; } }
 @media (prefers-reduced-motion: reduce) { #capa .rn-dilo-p .dring.rn-toca { animation: none; } }
+
+/* ===================== 0.3.6 ===================== */
+/* La palabra del arranque se va despacio, sobre Inicio ya pintado */
+#arranque.rn-anim5.rn-fuera { opacity: 0; transition: opacity .55s cubic-bezier(.33, 0, .2, 1); }
+/* La nebulosa del «+» (sustituye al aro y al destello) */
+#rn-neb { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 79; pointer-events: none; }
+.rn-destello { display: none; }
+/* Arranque de la 0.3.6: el de la app de siempre (58_rn_036.js), con la letra nueva */
+#arranque { transition: opacity .6s cubic-bezier(.33, 0, .2, 1); }
+#arranque.rn-fuera36 { opacity: 0; pointer-events: none; }
+#arranque svg.anillo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+.rn-logo36 { position: absolute; left: 0; right: 0; text-align: center; font-family: 'Inter Display', Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: -.02em; line-height: 1; white-space: nowrap; color: var(--txt); }
+.rn-logo36 .l { display: inline-block; opacity: 0; }

@@ -41,9 +41,16 @@ function rnAnimarArranque(ar) {
     /* Como la de siempre: la «R», y luego n, d, a de una en una mientras las bolas van cerrando el anillo */
     const FIN = 1.34;
     letras.forEach(l => { l.style.opacity = 0; }); bolas.innerHTML = '';
-    const t0 = tA = performance.now();
+    /* 0.3.6: el reloj de la animación es propio. En el iPhone, al abrir desde el icono, la pantalla sigue en blanco un rato
+       aunque la app ya esté en marcha: con el reloj de verdad, cuando por fin se veía, la animación ya había terminado.
+       Ahora empieza en el primer fotograma que se pinta, espera unos fotogramas quieta y nunca se salta trozos
+       (si el móvil se para, la animación se para con él). */
+    let t = 0, prev = 0, n = 0;
     const paso = now => {
-      const t = (now - t0) / 1000;
+      if (!n) { prev = now; tA = now; }
+      n++;
+      const dt = Math.min((now - prev) / 1000, 1 / 30); prev = now;
+      if (n > 4) t += dt;
       bolas.innerHTML = rnPalBolas(t).g;
       letras.forEach((l, i) => { l.style.opacity = (i ? eCl((t - 0.12 - (i - 1) * 0.1) / 0.22) : eCl(t / 0.16)).toFixed(3); });
       if (t < FIN) requestAnimationFrame(paso); else fin();

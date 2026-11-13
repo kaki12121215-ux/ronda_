@@ -113,3 +113,68 @@ document.addEventListener('pointerup', ev => { if (ev.pointerType === 'touch') s
 /* Al abrir Dilo, 57_rn_032.js devolvía «escuchar» al de la 1.7.3 (y se perdía todo lo de arriba): se vuelve a poner */
 const rnEscFinal = Dilo.escuchar, _diloAbrir59 = Dilo.abrir;
 Dilo.abrir = function () { this.escuchar = rnEscFinal; try { return _diloAbrir59.apply(this, arguments); } finally { this.escuchar = rnEscFinal; } };
+
+/* ===================== 0.3.6 =====================
+   1. Arranque: la animación se ve entera en el iPhone (su reloj empieza cuando la pantalla se pinta: 52_rn_arranque.js)
+      y se va con un fundido más largo.
+   2. Mantener pulsado el «+»: la nebulosa (opción D). Una nube de colores irregular que sale del botón, se mueve y crece
+      mientras se mantiene el dedo, sobre todo hacia arriba, para que se vea alrededor del dedo. Al llegar al segundo, se
+      expande y se funde mientras sale Dilo. Sustituye al aro. */
+const RN_NEB = { cv: null, c: null, ultimo: 0, borrar: 0, fin: 0, P: null, pr: 0 };
+const rnHx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rnMezHex = (c1, c2, t) => { const a = rnHx(c1), b = rnHx(c2); return a.map((v, i) => Math.round(v + (b[i] - v) * t)); };
+function rnNebLienzo() {
+  let cv = RN_NEB.cv;
+  if (!cv || !cv.isConnected) { cv = document.createElement('canvas'); cv.id = 'rn-neb'; cv.setAttribute('aria-hidden', 'true'); document.body.appendChild(cv); RN_NEB.cv = cv; RN_NEB.c = cv.getContext('2d'); }
+  /* A un píxel por punto: es una nube, no necesita más detalle (y así va ligera en el móvil) */
+  if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
+  return RN_NEB.c;
+}
+function rnNebGota(c, x, y, r, k, a) {
+  if (r <= 0 || a <= 0) return;
+  const g = c.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, 'rgba(' + k + ',' + a + ')'); g.addColorStop(.45, 'rgba(' + k + ',' + (a * .55) + ')'); g.addColorStop(1, 'rgba(' + k + ',0)');
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+}
+/* pr: lo que se lleva pulsado (0 a 1). f: el final, cuando ya sale Dilo (0 a 1) */
+function rnNebulosa(P0, pr, f) {
+  const c = rnNebLienzo(), t = performance.now() / 1000;
+  c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+  if (!P0 || pr <= 0) return;
+  const cl = rnE.cl, e = rnE.rellenar(pr), fu = 1 - f, eo = 1 - Math.pow(1 - cl(f), 3);
+  const A = (document.documentElement.dataset.tema === 'oscuro' ? .62 : .5) * .34 * cl(pr * 2) * fu, ex = 1 + .3 * eo, NA = 44;
+  if (A <= 0) return;
+  const capas = [[.34, .50, 1], [.62, .42, .8], [.86, .34, .55], [1.06, .24, .3]];
+  for (let k = 0; k < NA; k++) {
+    const th = k / NA * 2 * Math.PI, sn = Math.sin(th), up = sn < 0 ? 1 + .45 * -sn : 1 - .58 * sn;
+    const R = e * ex * up * (92 + 40 * Math.sin(3 * th + 1.5 * t) + 26 * Math.sin(5 * th - 2.3 * t + 1) + 20 * Math.sin(2 * th + .9 * t + 2) + 12 * Math.sin(7 * th + 3.1 * t));
+    const ci = (((k / NA + .1 * t + .06 * Math.sin(2 * th + t)) % 1) + 1) % 1 * 8, col = rnMezHex(RN_LOGO[Math.floor(ci) % 8], RN_LOGO[(Math.floor(ci) + 1) % 8], ci % 1).join(',');
+    capas.forEach(q => { const d = R * q[0] + 4 * Math.sin(4 * t + k + q[0] * 9); rnNebGota(c, P0.x + Math.cos(th) * d, P0.y + sn * d, R * q[1] + 10 * e, col, A * q[2]); });
+  }
+  /* El botón queda limpio */
+  c.globalCompositeOperation = 'destination-out';
+  const g = c.createRadialGradient(P0.x, P0.y, 20, P0.x, P0.y, 40); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(P0.x, P0.y, 42, 0, 7); c.fill();
+  c.globalCompositeOperation = 'source-over';
+}
+const rnNebBorrar = () => { if (RN_NEB.c) RN_NEB.c.clearRect(0, 0, RN_NEB.c.canvas.width, RN_NEB.c.canvas.height); };
+/* 57_rn_032.js llama a rnAroProgreso en cada fotograma mientras se mantiene pulsado: ahora pinta la nebulosa */
+function rnAroProgreso(c, pr) {
+  if (RN_NEB.fin) return '';
+  RN_NEB.P = { x: c.x, y: c.y }; RN_NEB.pr = pr; RN_NEB.ultimo = performance.now();
+  rnNebulosa(RN_NEB.P, pr, 0);
+  /* Si se suelta antes del segundo, deja de llamarse: se borra sola */
+  clearTimeout(RN_NEB.borrar); RN_NEB.borrar = setTimeout(() => { if (!RN_NEB.fin) rnNebBorrar(); }, 90);
+  return '';
+}
+/* Al llegar al segundo: se expande y se funde mientras sale Dilo */
+const _diloAbrir60 = Dilo.abrir;
+Dilo.abrir = function (modo, desdeMas) {
+  const r = _diloAbrir60.apply(this, arguments);
+  if (desdeMas && RN_NEB.P && performance.now() - RN_NEB.ultimo < 200 && !REDUCIR) {
+    clearTimeout(RN_NEB.borrar); const t0 = performance.now(), P = RN_NEB.P; RN_NEB.fin = 1;
+    const paso = now => { const f = rnE.cl((now - t0) / 280); rnNebulosa(P, 1, f); if (f < 1) requestAnimationFrame(paso); else { rnNebBorrar(); RN_NEB.fin = 0; RN_NEB.P = null; } };
+    requestAnimationFrame(paso);
+  }
+  return r;
+};

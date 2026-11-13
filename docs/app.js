@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.5 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.6 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.5';  /* prueba del diseño nuevo */
+const VERSION = '0.3.6';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
@@ -8016,9 +8016,16 @@ function rnAnimarArranque(ar) {
     /* Como la de siempre: la «R», y luego n, d, a de una en una mientras las bolas van cerrando el anillo */
     const FIN = 1.34;
     letras.forEach(l => { l.style.opacity = 0; }); bolas.innerHTML = '';
-    const t0 = tA = performance.now();
+    /* 0.3.6: el reloj de la animación es propio. En el iPhone, al abrir desde el icono, la pantalla sigue en blanco un rato
+       aunque la app ya esté en marcha: con el reloj de verdad, cuando por fin se veía, la animación ya había terminado.
+       Ahora empieza en el primer fotograma que se pinta, espera unos fotogramas quieta y nunca se salta trozos
+       (si el móvil se para, la animación se para con él). */
+    let t = 0, prev = 0, n = 0;
     const paso = now => {
-      const t = (now - t0) / 1000;
+      if (!n) { prev = now; tA = now; }
+      n++;
+      const dt = Math.min((now - prev) / 1000, 1 / 30); prev = now;
+      if (n > 4) t += dt;
       bolas.innerHTML = rnPalBolas(t).g;
       letras.forEach((l, i) => { l.style.opacity = (i ? eCl((t - 0.12 - (i - 1) * 0.1) / 0.22) : eCl(t / 0.16)).toFixed(3); });
       if (t < FIN) requestAnimationFrame(paso); else fin();
@@ -8732,7 +8739,7 @@ async function rnArrancar() {
     org.style.transform = 'translate(calc(-50% + ' + (b.left + b.width / 2 - a.left - a.width / 2).toFixed(1) + 'px), calc(-50% + ' + (b.top + b.height / 2 - a.top - a.height / 2).toFixed(1) + 'px)) scale(' + (b.width / a.width).toFixed(4) + ')';
     setTimeout(() => { pal.style.opacity = ''; ar.remove(); }, 640);
     setTimeout(() => pg.classList.remove('rn-bv-entra'), 1600);
-  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 420); }
+  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 620); }
 }
 
 /* ---- 58_rn_033.js ---- */
@@ -8851,6 +8858,199 @@ document.addEventListener('pointerup', ev => { if (ev.pointerType === 'touch') s
 /* Al abrir Dilo, 57_rn_032.js devolvía «escuchar» al de la 1.7.3 (y se perdía todo lo de arriba): se vuelve a poner */
 const rnEscFinal = Dilo.escuchar, _diloAbrir59 = Dilo.abrir;
 Dilo.abrir = function () { this.escuchar = rnEscFinal; try { return _diloAbrir59.apply(this, arguments); } finally { this.escuchar = rnEscFinal; } };
+
+/* ===================== 0.3.6 =====================
+   1. Arranque: la animación se ve entera en el iPhone (su reloj empieza cuando la pantalla se pinta: 52_rn_arranque.js)
+      y se va con un fundido más largo.
+   2. Mantener pulsado el «+»: la nebulosa (opción D). Una nube de colores irregular que sale del botón, se mueve y crece
+      mientras se mantiene el dedo, sobre todo hacia arriba, para que se vea alrededor del dedo. Al llegar al segundo, se
+      expande y se funde mientras sale Dilo. Sustituye al aro. */
+const RN_NEB = { cv: null, c: null, ultimo: 0, borrar: 0, fin: 0, P: null, pr: 0 };
+const rnHx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rnMezHex = (c1, c2, t) => { const a = rnHx(c1), b = rnHx(c2); return a.map((v, i) => Math.round(v + (b[i] - v) * t)); };
+function rnNebLienzo() {
+  let cv = RN_NEB.cv;
+  if (!cv || !cv.isConnected) { cv = document.createElement('canvas'); cv.id = 'rn-neb'; cv.setAttribute('aria-hidden', 'true'); document.body.appendChild(cv); RN_NEB.cv = cv; RN_NEB.c = cv.getContext('2d'); }
+  /* A un píxel por punto: es una nube, no necesita más detalle (y así va ligera en el móvil) */
+  if (cv.width !== innerWidth || cv.height !== innerHeight) { cv.width = innerWidth; cv.height = innerHeight; }
+  return RN_NEB.c;
+}
+function rnNebGota(c, x, y, r, k, a) {
+  if (r <= 0 || a <= 0) return;
+  const g = c.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, 'rgba(' + k + ',' + a + ')'); g.addColorStop(.45, 'rgba(' + k + ',' + (a * .55) + ')'); g.addColorStop(1, 'rgba(' + k + ',0)');
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+}
+/* pr: lo que se lleva pulsado (0 a 1). f: el final, cuando ya sale Dilo (0 a 1) */
+function rnNebulosa(P0, pr, f) {
+  const c = rnNebLienzo(), t = performance.now() / 1000;
+  c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+  if (!P0 || pr <= 0) return;
+  const cl = rnE.cl, e = rnE.rellenar(pr), fu = 1 - f, eo = 1 - Math.pow(1 - cl(f), 3);
+  const A = (document.documentElement.dataset.tema === 'oscuro' ? .62 : .5) * .34 * cl(pr * 2) * fu, ex = 1 + .3 * eo, NA = 44;
+  if (A <= 0) return;
+  const capas = [[.34, .50, 1], [.62, .42, .8], [.86, .34, .55], [1.06, .24, .3]];
+  for (let k = 0; k < NA; k++) {
+    const th = k / NA * 2 * Math.PI, sn = Math.sin(th), up = sn < 0 ? 1 + .45 * -sn : 1 - .58 * sn;
+    const R = e * ex * up * (92 + 40 * Math.sin(3 * th + 1.5 * t) + 26 * Math.sin(5 * th - 2.3 * t + 1) + 20 * Math.sin(2 * th + .9 * t + 2) + 12 * Math.sin(7 * th + 3.1 * t));
+    const ci = (((k / NA + .1 * t + .06 * Math.sin(2 * th + t)) % 1) + 1) % 1 * 8, col = rnMezHex(RN_LOGO[Math.floor(ci) % 8], RN_LOGO[(Math.floor(ci) + 1) % 8], ci % 1).join(',');
+    capas.forEach(q => { const d = R * q[0] + 4 * Math.sin(4 * t + k + q[0] * 9); rnNebGota(c, P0.x + Math.cos(th) * d, P0.y + sn * d, R * q[1] + 10 * e, col, A * q[2]); });
+  }
+  /* El botón queda limpio */
+  c.globalCompositeOperation = 'destination-out';
+  const g = c.createRadialGradient(P0.x, P0.y, 20, P0.x, P0.y, 40); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(P0.x, P0.y, 42, 0, 7); c.fill();
+  c.globalCompositeOperation = 'source-over';
+}
+const rnNebBorrar = () => { if (RN_NEB.c) RN_NEB.c.clearRect(0, 0, RN_NEB.c.canvas.width, RN_NEB.c.canvas.height); };
+/* 57_rn_032.js llama a rnAroProgreso en cada fotograma mientras se mantiene pulsado: ahora pinta la nebulosa */
+function rnAroProgreso(c, pr) {
+  if (RN_NEB.fin) return '';
+  RN_NEB.P = { x: c.x, y: c.y }; RN_NEB.pr = pr; RN_NEB.ultimo = performance.now();
+  rnNebulosa(RN_NEB.P, pr, 0);
+  /* Si se suelta antes del segundo, deja de llamarse: se borra sola */
+  clearTimeout(RN_NEB.borrar); RN_NEB.borrar = setTimeout(() => { if (!RN_NEB.fin) rnNebBorrar(); }, 90);
+  return '';
+}
+/* Al llegar al segundo: se expande y se funde mientras sale Dilo */
+const _diloAbrir60 = Dilo.abrir;
+Dilo.abrir = function (modo, desdeMas) {
+  const r = _diloAbrir60.apply(this, arguments);
+  if (desdeMas && RN_NEB.P && performance.now() - RN_NEB.ultimo < 200 && !REDUCIR) {
+    clearTimeout(RN_NEB.borrar); const t0 = performance.now(), P = RN_NEB.P; RN_NEB.fin = 1;
+    const paso = now => { const f = rnE.cl((now - t0) / 280); rnNebulosa(P, 1, f); if (f < 1) requestAnimationFrame(paso); else { rnNebBorrar(); RN_NEB.fin = 0; RN_NEB.P = null; } };
+    requestAnimationFrame(paso);
+  }
+  return r;
+};
+
+/* ---- 58_rn_036.js ---- */
+/* ===================== 0.3.6 · ARRANQUE: la animación de la app de siempre =====================
+   Copiada tal cual de la 1.7.3 (03_ui.js y 05_pantallas.js): los mismos tiempos, el mismo movimiento de las bolas, la misma
+   espera a que esté la letra (que es justo lo que tarda el iPhone en enseñar la pantalla) y el mismo fundido al irse.
+   Solo cambia:
+   - la letra: Inter Display (la de la app nueva) en vez de Nunito, con la «R» mayúscula de la marca nueva;
+   - los colores de las bolas: los del logo nuevo, con un brillo muy suave arriba a la izquierda;
+   - el fondo: el de Inicio. */
+
+/* Medidas fijas de la «o» de Inter Display 600 (por cada px de letra), sacadas de la fuente */
+function medirLogo(cont, topPx, fs) {
+  const mo = { width: 0.570 * fs, actualBoundingBoxLeft: -0.031 * fs, actualBoundingBoxRight: 0.540 * fs, actualBoundingBoxAscent: 0.527 * fs, actualBoundingBoxDescent: 0.012 * fs };
+  const oW = mo.actualBoundingBoxLeft + mo.actualBoundingBoxRight, oH = mo.actualBoundingBoxAscent + mo.actualBoundingBoxDescent;
+  const sb = (mo.width - oW) / 2, D = oH * 1.15, padL = sb + 0.06 * fs, padR = sb + 0.01 * fs;
+  cont.innerHTML = '<div class="rn-logo36" style="top:' + topPx + 'px;font-size:' + fs + 'px"><span style="position:relative;display:inline-block"><span class="l">R</span><span class="ph" style="display:inline-block;height:1px;width:' + (padL + D + padR) + 'px"></span><i class="bl" style="display:inline-block;width:0;height:0"></i><span class="l">n</span><span class="l">d</span><span class="l">a</span></span></div><svg class="anillo"></svg>';
+  const cr = cont.getBoundingClientRect(), p = $('.ph', cont).getBoundingClientRect(), bl = $('.bl', cont).getBoundingClientRect();
+  const FAC = (37.5 + 10.4) * 2 / 100;
+  return { cx: p.left - cr.left + padL + D / 2, cy: bl.bottom - cr.top - (mo.actualBoundingBoxAscent - mo.actualBoundingBoxDescent) / 2, S: D / FAC };
+}
+/* El brillo: un toque de luz suave en cada bola */
+const RN_BRILLO_DEF = '<defs><radialGradient id="rn-br36" cx=".34" cy=".3" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>';
+const rnBola36 = (x, y, r, i) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + RN_LOGO[i] + '"/><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="url(#rn-br36)"/>';
+function dibujarAnillo(svg, t, T, START) {
+  const m = io(cl((t - T0) / TM));
+  const cx = START.cx + (T.cx - START.cx) * m, cy = START.cy + (T.cy - START.cy) * m, Sx = START.S + (T.S - START.S) * m, k = Sx / 100;
+  let o = '';
+  const rot = -110 * (1 - oC(cl((t - 0.2) / 1.6)));
+  for (let i = 0; i < 8; i++) {
+    const t0 = 0.35 + i * 0.12, p = cl((t - t0) / 0.55), e = oB(p), R = 37.5 * e, a = (i * 45 + rot) * Math.PI / 180;
+    let s = cl(p * 2.2) * (0.55 + 0.45 * Math.min(1.25, e));
+    const wv = cl((t - 1.9 - i * 0.07) / 0.5); s *= 1 + 0.16 * Math.sin(wv * Math.PI) * (1 - m);
+    const q = cl((t - t0 - 0.28) / 0.6);
+    if (q > 0 && q < 1 && m === 0) o += '<circle cx="' + (37.5 * Math.sin(a)).toFixed(2) + '" cy="' + (-37.5 * Math.cos(a)).toFixed(2) + '" r="' + (10.4 + 16 * oC(q)).toFixed(2) + '" fill="' + RN_LOGO[i] + '" opacity="' + (0.28 * (1 - q)).toFixed(3) + '"/>';
+    if (p > 0) o += rnBola36((R * Math.sin(a)).toFixed(2), (-R * Math.cos(a)).toFixed(2), (10.4 * Math.max(s, 0)).toFixed(3), i);
+  }
+  svg.innerHTML = RN_BRILLO_DEF + '<g transform="translate(' + cx.toFixed(2) + ' ' + cy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' + o + '</g>';
+}
+function dibujarAnilloRapido(svg, t, T) {
+  const k = T.S / 100, rot = -90 * (1 - oC(cl(t / 0.95)));
+  let o = '';
+  for (let i = 0; i < 8; i++) {
+    const t0 = 0.05 + i * 0.065, p = cl((t - t0) / 0.38), e = oB(p), R = 37.5 * e, a = (i * 45 + rot) * Math.PI / 180;
+    const s = cl(p * 2.4) * (0.6 + 0.4 * Math.min(1.25, e));
+    const q = cl((t - t0 - 0.2) / 0.45);
+    if (q > 0 && q < 1) o += '<circle cx="' + (37.5 * Math.sin(a)).toFixed(2) + '" cy="' + (-37.5 * Math.cos(a)).toFixed(2) + '" r="' + (10.4 + 12 * oC(q)).toFixed(2) + '" fill="' + RN_LOGO[i] + '" opacity="' + (0.3 * (1 - q)).toFixed(3) + '"/>';
+    if (p > 0) o += rnBola36((R * Math.sin(a)).toFixed(2), (-R * Math.cos(a)).toFixed(2), (10.4 * Math.max(s, 0)).toFixed(3), i);
+  }
+  svg.innerHTML = RN_BRILLO_DEF + '<g transform="translate(' + T.cx.toFixed(2) + ' ' + T.cy.toFixed(2) + ') scale(' + k.toFixed(4) + ')">' + o + '</g>';
+}
+/* Igual que en la 1.7.3; solo cambia la letra que se espera */
+function animarArranque(modo) {
+  return new Promise(async ok => {
+    const ar = $('#arranque');
+    try { await Promise.race([document.fonts.load('600 88px "Inter Display"').then(() => document.fonts.ready), espera(3000)]); } catch (e) { }
+    let W, H, fs, T, svg, letras, CY;
+    const montar = () => {
+      W = innerWidth; H = innerHeight;
+      fs = Math.round(88 * Math.min(1, W / 390));
+      CY = centroPantalla(H);
+      if (modo === 'b') T = medirLogo(ar, Math.round(H * 318 / 844), fs);
+      else { const t0 = medirLogo(ar, 0, fs); T = medirLogo(ar, Math.round(CY - t0.cy), fs); }
+      svg = $('svg.anillo', ar);
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      letras = $$('.l', ar);
+    };
+    montar();
+    let remedido = false;
+    const START = { cx: W / 2, cy: modo === 'b' ? H * 422 / 844 : CY, S: 200 * Math.min(1, W / 390) };
+    const K = modo === 'b' ? 1 : 2;
+    const FIN = T0 + 0.3 + 3 * 0.1 + 0.55 + 0.25;
+    if (REDUCIR) { dibujarAnillo(svg, 10, T, T); letras.forEach(l => { l.style.opacity = 1; }); await espera(500); return ok(); }
+    const t0 = performance.now();
+    if (modo !== 'b') {
+      const rapido = now => {
+        const t = (now - t0) / 1000 * 1.333;
+        if (now - t0 < 450) { try { const h0 = H; W = innerWidth; H = innerHeight; if (H !== h0) montar(); } catch (e) { } }
+        dibujarAnilloRapido(svg, t, T);
+        letras.forEach((l, i) => { const p = oC(cl((t - i * 0.05) / 0.4)); l.style.opacity = p; l.style.transform = 'translateY(' + (10 * (1 - p)) + 'px)'; });
+        if (t < 1.0) requestAnimationFrame(rapido); else { dibujarAnilloRapido(svg, 2, T); letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); window.RN_ARR_MS = Math.round(performance.now() - t0); ok(); }
+      };
+      requestAnimationFrame(rapido);
+      return;
+    }
+    const paso = now => {
+      const t = (now - t0) / 1000 * K;
+      if (!remedido && t >= T0 - 0.2) { remedido = true; try { if (document.fonts.check('600 88px "Inter Display"')) montar(); } catch (e) { } }
+      dibujarAnillo(svg, t, T, START);
+      letras.forEach((l, i) => { const p = oC(cl((t - (T0 + 0.3 + i * 0.1)) / 0.55)); l.style.opacity = p; l.style.transform = 'translateY(' + (18 * (1 - p)) + 'px)'; });
+      if (t < FIN) requestAnimationFrame(paso); else { window.RN_ARR_MS = Math.round(performance.now() - t0); ok(); }
+    };
+    requestAnimationFrame(paso);
+  });
+}
+/* Igual que en la 1.7.3: la app se funde suavemente mientras se va la animación */
+function quitarArranque() {
+  const ar = $('#arranque'); if (!ar) return;
+  const capas = [$('#app'), $('#nav')].filter(Boolean);
+  if (!REDUCIR) capas.forEach(c => c.classList.add('rn-entra'));
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ar.classList.add('rn-fuera36');
+    capas.forEach(c => c.classList.add('rn-ya'));
+    setTimeout(() => { capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')); }, 850);
+  }));
+  setTimeout(() => ar.remove(), 750);
+}
+/* El arranque de la app nueva (ejemplo o casa), con la animación de siempre */
+async function rnArrancar() {
+  aplicarTema();
+  try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
+  const modo = (!EN_CASA && !rnModoElegido()) ? 'b' : 'l';
+  const anim = $('#arranque') ? animarArranque(modo) : Promise.resolve();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
+  let destino = 'inicio';
+  if (EN_CASA) {
+    const ok = await cargarCasa();
+    if (!ok) { try { localStorage.removeItem('rondaP-modo'); localStorage.removeItem('rondaP-casa'); } catch (e) { } location.reload(); return; }
+    let onb = ''; try { onb = localStorage.getItem('rondaP-onb-pend') || ''; } catch (e) { }
+    if (onb) destino = 'onb';
+  } else {
+    await cargarPrueba();
+    if (!rnModoElegido()) destino = 'bienvenida';
+  }
+  await anim;
+  Nav.raiz(destino, destino === 'onb' ? { paso: 0 } : {});
+  RN_ARRANCANDO = false;
+  quitarArranque();
+}
 
 /* ---- 59_rn_fin.js ---- */
 /* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */

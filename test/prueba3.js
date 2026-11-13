@@ -36,19 +36,13 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
       const t1 = Date.now();
       await p.reload(); await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 });
       const corta = await ev(() => window.RN_ARR_MS);
-      comprueba(corta > 1250 && corta < 1700, 'la animación dura 1,34 s (' + corta + ' ms; la página entera, ' + (Date.now() - t1) + ' ms)');
-      /* 0.3.0 · opción A: termina en «R◯nda». La palabra centrada en la pantalla física y el anillo de 8 bolas en el sitio de la «o» */
+      comprueba(corta > 650 && corta < 950, '0.3.6: la animación de siempre, 0,75 s (' + corta + ' ms; la página entera, ' + (Date.now() - t1) + ' ms)');
+      /* 0.3.6: la de la app de siempre con la letra nueva. Termina con 8 bolas en la «o» y R n d a */
       await p.reload(); await p.waitForFunction(() => window.RN_ARR_MS > 0 && document.querySelector('#arranque'), null, { timeout: 8000 });
-      const logo = await ev(() => {
-        const a = document.querySelector('#arranque'); if (!a) return null;
-        const sv = a.querySelector('.rn-pal'), r = sv.getBoundingClientRect(), P0 = window.RONDA.RN_PAL;
-        const bs = [...a.querySelectorAll('.rn-pal-b circle')].map(x => x.getBoundingClientRect());
-        const cx = bs.reduce((t, b) => t + b.left + b.width / 2, 0) / bs.length, cy = bs.reduce((t, b) => t + b.top + b.height / 2, 0) / bs.length;
-        const ox = r.left + (P0.ox - P0.vx) / P0.vw * r.width, oy = r.top + (P0.oy - P0.vy) / P0.vh * r.height;
-        return { n: bs.length, redondas: bs.every(b => Math.abs(b.width - b.height) < 0.6 && Math.abs(b.width - bs[0].width) < 0.6), enLaO: Math.abs(cx - ox) < 1.2 && Math.abs(cy - oy) < 1.2,
-          centro: Math.abs(r.left + r.width / 2 - innerWidth / 2) < 1 && Math.abs(r.top + r.height / 2 - innerHeight / 2) < 1, letras: a.querySelectorAll('.rn-pal-l path').length, canvas: !!a.querySelector('canvas') };
-      });
-      comprueba(logo && logo.n === 8 && logo.redondas && logo.enLaO && logo.centro && logo.letras === 4 && !logo.canvas, 'el arranque termina en «R◯nda»: 8 bolas redondas en la «o», R n d a, centrado y sin canvas ' + JSON.stringify(logo));
+      const logo = await ev(() => { const a = document.querySelector('#arranque'); if (!a) return null;
+        const bs = [...a.querySelectorAll('svg.anillo circle:not([fill^="url"])')].filter(c => !c.getAttribute('opacity'));
+        return { n: bs.length, letras: [...a.querySelectorAll('.rn-logo36 .l')].map(l => l.textContent).join(''), brillo: a.querySelectorAll('svg.anillo circle[fill^="url"]').length }; });
+      comprueba(logo && logo.n === 8 && logo.letras === 'Rnda' && logo.brillo === 8, 'el arranque termina en «R◯nda» con 8 bolas con brillo ' + JSON.stringify(logo));
       await p.screenshot({ path: C + m + '_arranque_final.png' });
       await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 }); await espera(400);
 
