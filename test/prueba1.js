@@ -13,7 +13,7 @@ const PUERTO = 8140, WEB = 'http://localhost:' + PUERTO + '/';
 async function movil(b, oscuro) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: oscuro ? 'dark' : 'light', hasTouch: true, isMobile: true });
   /* 0.2.1: como si ya se hubiera abierto antes (la animación larga de la primera vez la prueba test/prueba3.js) */
-  await ctx.addInitScript(() => { try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { } });
+  await ctx.addInitScript(() => { try { localStorage.setItem('rondaP-bienvenida', '1'); localStorage.setItem('rondaP-modo', 'ejemplo'); } catch (e) { } });
   const p = await ctx.newPage(); p.errores = [];
   p.on('pageerror', e => p.errores.push(e.message)); p.on('console', m => { if (m.type() === 'error') p.errores.push(m.text()); });
   return p;
@@ -68,7 +68,11 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       const ws = await ev(p, () => [...document.querySelectorAll('[data-p="inicio"] .rn-cd')].map(c => c.className.match(/rn-w-(\w+)/)[1]));
       comprueba(ws.join() === 'tareas,menu,compra,gasto,plantas', 'Inicio tiene los cinco widgets en orden: ' + ws.join(', '));
       comprueba(await ev(p, () => /^(Buenos días|Buenas tardes|Buenas noches), Iña$/.test(document.querySelector('.rn-saludo').textContent)), 'saludo con el nombre');
-      comprueba(await ev(p, () => !document.querySelector('.rn-barra').classList.contains('rn-k-lima') && document.querySelector('.rn-barra').classList.contains('rn-neutra')), 'en Inicio la pestaña activa y el «+» van en blanco (neutro)');
+      /* 0.3.0: barra nueva. Inicio, gris medio B; el «+», gris claro siempre */
+      comprueba(await ev(p, () => !!document.querySelector('.rn-tab.rn-on.rn-gris[data-id="inicio"]') && !!document.querySelector('.rn-pil.rn-pil-gris') && getComputedStyle(document.querySelector('.rn-pil')).backgroundColor === (document.documentElement.dataset.tema === 'oscuro' ? 'rgb(101, 115, 123)' : 'rgb(85, 99, 107)')), 'en Inicio la pestaña activa va en gris medio B');
+      comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-plus5')).backgroundColor === (document.documentElement.dataset.tema === 'oscuro' ? 'rgb(52, 64, 74)' : 'rgb(238, 241, 243)')), 'el «+» va en gris claro neutro');
+      comprueba(await ev(p, () => [...document.querySelectorAll('.rn-b5c > button')].map(b => b.dataset.id || '+').join() === 'inicio,tareas,+,menu,mas'), 'orden de la barra: Inicio, Tareas, +, Menú, Más');
+      comprueba(await ev(p, () => { const c = getComputedStyle(document.querySelector('.rn-b5c')).backgroundColor; return c === 'rgb(255, 255, 255)' || c === 'rgb(35, 44, 49)'; }), 'la barra es opaca (blanca en claro, oscura en oscuro)');
       const menuCorta = await ev(p, () => [...document.querySelectorAll('.rn-mt')].some(e => e.scrollHeight > e.clientHeight + 1 || getComputedStyle(e).textOverflow === 'ellipsis'));
       comprueba(!menuCorta, 'el menú de la semana parte el texto largo en líneas, sin cortarlo (E15)');
       comprueba(await ev(p, () => document.querySelectorAll('.rn-mf.rn-hoy').length === 1), 'el día de hoy va resaltado en el menú');
@@ -85,7 +89,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         await toca(p, '.rn-w-tareas .rn-ck'); await espera(600);
         comprueba(await ev(p, i => window.RONDA.dato('tareas', i).hecho, id), 'marcar una tarea desde Inicio la deja hecha');
         comprueba(/hecha/.test(await aviso(p)), 'sale el aviso con «Deshacer»');
-        const av = await ev(p, () => { const a = document.querySelector('.rn-aviso').getBoundingClientRect(), n = document.querySelector('.rn-nv').getBoundingClientRect(), pl = document.querySelector('.rn-plus').getBoundingClientRect(); return a.bottom <= n.top && a.bottom <= pl.top; });
+        const av = await ev(p, () => { const a = document.querySelector('.rn-aviso').getBoundingClientRect(), n = document.querySelector('.rn-b5c').getBoundingClientRect(), pl = document.querySelector('.rn-plus5').getBoundingClientRect(); return a.bottom <= n.top && a.bottom <= pl.top; });
         comprueba(av, 'el aviso va encima de la barra y no tapa el «+» (D11)');
         await p.screenshot({ path: C + 'aviso_' + m + '.png' });
         await toca(p, '.rn-ava'); await espera(300);
@@ -104,8 +108,10 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         await toca(p, '.rn-ava'); await espera(200);
         comprueba(!(await ev(p, () => window.RONDA.lista('movs').some(x => x.importe === 12.5))), '«Deshacer» quita el gasto');
         /* Compra ya tiene su pantalla (0.2.0) */
-        await toca(p, '.rn-tab[data-id="compra"]'); await espera(500);
-        comprueba(await ev(p, () => !!document.querySelector('.rn-pg.rn-k-compra, [data-p="compra"]')), 'Compra abre su pantalla');
+        /* 0.3.0: Compra pasa a Más */
+        comprueba(await ev(p, () => !document.querySelector('.rn-tab[data-id="compra"]')), 'Compra ya no está en la barra');
+        await toca(p, '.rn-tab[data-id="mas"]'); await espera(600); await toca(p, '.rn-sc[data-id="compra"]'); await espera(700);
+        comprueba(await ev(p, () => !!document.querySelector('.rn-pg.rn-k-compra, [data-p="compra"]')), 'Compra se abre desde Más');
         await toca(p, '.rn-tab[data-id="inicio"]'); await espera(500);
       }
       await ev(p, () => document.querySelector('[data-p="inicio"] .pgc').scrollTo(0, 0));
@@ -122,7 +128,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-gr .rn-ch')).borderTopStyle === 'none'), 'la primera pieza de la tarjeta no lleva raya arriba (F21)');
       comprueba(await ev(p, () => document.querySelector('.rn-gr[data-g="a"] .rn-ck').classList.contains('rn-atr') && /^Era el /.test(document.querySelector('.rn-gr[data-g="a"] .rn-n').textContent)), 'la atrasada lleva casilla roja y «Era el …»');
       comprueba(await ev(p, () => !!document.querySelector('.rn-it .rn-cand')), 'el candado sale junto al título de «Solo para mí» (F18)');
-      comprueba(await ev(p, () => document.querySelector('.rn-barra').classList.contains('rn-k-lima') && document.querySelector('.rn-tab.rn-on').dataset.id === 'tareas'), 'en Tareas la pestaña activa y el «+» van en lima');
+      comprueba(await ev(p, () => document.querySelector('.rn-pil').classList.contains('rn-k-lima') && document.querySelector('.rn-tab.rn-on').dataset.id === 'tareas' && !document.querySelector('.rn-plus5').className.match(/rn-k-/)), 'en Tareas la pestaña activa va en lima y el «+» sigue gris');
       await p.screenshot({ path: C + 'tareas_' + m + '.png' });
       if (!oscuro) {
         await toca(p, '.rn-fl button[data-v="persona-ru-00000000002"]'); await espera(300);
@@ -131,7 +137,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         comprueba(await ev(p, () => document.querySelectorAll('.rn-it.rn-dn').length >= 2), '«Hechas» enseña las hechas, tachadas');
         await toca(p, '.rn-fl button[data-v="mias"]'); await espera(300);
         /* Nueva tarea */
-        await toca(p, '.rn-plus'); await espera(600);
+        await toca(p, '.rn-plus5'); await espera(600);
         comprueba(await ev(p, () => /Nueva tarea/.test(document.querySelector('.rn-hj .rn-hjt').textContent)), 'el «+» de Tareas abre «Nueva tarea»');
         comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-hj .rn-et')).textAlign !== 'center'), 'las etiquetas de la hoja van a la izquierda');
         await p.screenshot({ path: C + 'nueva_tarea_' + m + '.png' });
@@ -150,7 +156,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         comprueba(await ev(p, () => [...document.querySelectorAll('.rn-gr')].some(g => /^Mañana/.test(g.querySelector('.rn-cht').textContent) && /Bajar la basura/.test(g.textContent))), 'sale en el grupo «Mañana»');
         comprueba(/Tarea guardada/.test(await aviso(p)), 'aviso «Tarea guardada» con «Deshacer»');
         /* Solo para mí: Ru no la ve */
-        await toca(p, '.rn-plus'); await espera(500);
+        await toca(p, '.rn-plus5'); await espera(500);
         await p.fill('#rnTit', 'Regalo sorpresa'); await toca(p, '.rn-sw[data-a="rnTSolo"]');
         comprueba(await ev(p, () => !document.querySelector('.rn-qc[data-a="rnTPara"]')), 'con «Solo para mí» desaparece «Para quién»');
         await toca(p, '.rn-hj .rn-btnp'); await espera(500);
@@ -188,7 +194,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
         await espera(600);
         comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'tareas'), 'deslizar desde el borde izquierdo vuelve a Tareas (A6)');
       } else {
-        await toca(p, '.rn-plus'); await espera(600); await p.screenshot({ path: C + 'nueva_tarea_' + m + '.png' }); await toca(p, '.rn-hj .rn-x'); await espera(400);
+        await toca(p, '.rn-plus5'); await espera(600); await p.screenshot({ path: C + 'nueva_tarea_' + m + '.png' }); await toca(p, '.rn-hj .rn-x'); await espera(400);
       }
 
       /* ---------- 0.1.1 · Mantener pulsado «Más» ---------- */
@@ -244,12 +250,12 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await p.screenshot({ path: C + 'secciones_' + m + '.png' });
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
-      comprueba(await ev(p, () => !document.querySelector('.rn-plus') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas'), 'en Ajustes no hay «+» y «Más» va activa en blanco');
-      comprueba(await ev(p, () => /prueba 0\.2\.1/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
+      comprueba(await ev(p, () => !!document.querySelector('.rn-plus5') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas' && document.querySelector('.rn-tab.rn-on').classList.contains('rn-gris')), 'en Ajustes «Más» va activa en gris y el «+» sigue (abre «Añadir»)');
+      comprueba(await ev(p, () => /prueba 0\.3\.0/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */
-      const tapa = await ev(p, () => { const c = document.querySelector('[data-p="ajustes"] .pgc'); c.scrollTo(0, 99999); const u = document.querySelector('.rn-version').getBoundingClientRect(), n = document.querySelector('.rn-nv').getBoundingClientRect(); return u.bottom <= n.top; });
+      const tapa = await ev(p, () => { const c = document.querySelector('[data-p="ajustes"] .pgc'); c.scrollTo(0, 99999); const u = document.querySelector('.rn-version').getBoundingClientRect(), n = document.querySelector('.rn-b5c').getBoundingClientRect(); return u.bottom <= n.top; });
       comprueba(tapa, 'al final de la pantalla, nada queda debajo de la barra');
       comprueba(!p.errores.length, 'sin errores en la consola' + (p.errores.length ? ': ' + p.errores.join(' | ') : ''));
       await p.context().close();

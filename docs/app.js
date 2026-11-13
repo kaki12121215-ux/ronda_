@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.2.1 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.0 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,12 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.2.1';  /* prueba del diseño nuevo */
+const VERSION = '0.3.0';  /* prueba del diseño nuevo */
+/* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
+   Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
+const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
+const EN_CASA = MODO === 'casa';
+const PREF_LS = EN_CASA ? 'rondaPC:' : 'rondaP:';
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
@@ -81,7 +86,7 @@ const DB = {
       const fin = m => { if (!hecho) { hecho = true; this.modo = m; ok(); } };
       setTimeout(() => fin(this.lsOk() ? 'local' : 'memoria'), 2500);
       try {
-        const r = indexedDB.open('ronda_prueba', 1);
+        const r = indexedDB.open(EN_CASA ? 'ronda_prueba_casa' : 'ronda_prueba', 1);
         r.onupgradeneeded = () => r.result.createObjectStore('kv');
         r.onsuccess = () => { this.db = r.result; fin('idb'); };
         r.onerror = () => fin(this.lsOk() ? 'local' : 'memoria');
@@ -98,7 +103,7 @@ const DB = {
     if (k in this.mem) return this.mem[k];
     try {
       if (this.modo === 'idb') return await this.tx('readonly', s => s.get(k));
-      if (this.modo === 'local') { const v = localStorage.getItem('rondaP:' + k); return v ? JSON.parse(v) : undefined; }
+      if (this.modo === 'local') { const v = localStorage.getItem(PREF_LS + k); return v ? JSON.parse(v) : undefined; }
     } catch (e) { anotar('leer ' + k, e); }
     return undefined;
   },
@@ -106,14 +111,14 @@ const DB = {
     this.mem[k] = v;
     try {
       if (this.modo === 'idb') await this.tx('readwrite', s => s.put(v, k));
-      else if (this.modo === 'local') localStorage.setItem('rondaP:' + k, JSON.stringify(v));
+      else if (this.modo === 'local') localStorage.setItem(PREF_LS + k, JSON.stringify(v));
     } catch (e) { anotar('guardar ' + k, e); }
   },
   async del(k) {
     delete this.mem[k];
     try {
       if (this.modo === 'idb') await this.tx('readwrite', s => s.delete(k));
-      else if (this.modo === 'local') localStorage.removeItem('rondaP:' + k);
+      else if (this.modo === 'local') localStorage.removeItem(PREF_LS + k);
     } catch (e) { anotar('borrar ' + k, e); }
   }
 };
@@ -131,7 +136,7 @@ const S = {
 };
 
 let guardarT = null;
-function guardarLocal(ya) {
+function guardarLocalReal(ya) {
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: S.seq, sid: S.sid }); DB.set('cola', S.cola); };
   if (ya) f(); else guardarT = setTimeout(f, 250);
@@ -140,7 +145,7 @@ function guardarLocal(ya) {
 /* ---------- llamadas al script */
 function ErrR(code, msg) { const e = new Error(msg); e.code = code; e.ronda = true; return e; }
 
-async function api(a, extra, opts) {
+async function apiReal(a, extra, opts) {
   opts = opts || {};
   const url = opts.url || (S.cfg && S.cfg.url);
   if (!url) throw ErrR('config', 'Este móvil no está conectado a ningún espacio.');
@@ -3008,7 +3013,7 @@ const deb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 async function claveAES(raw) { return crip().importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']); }
 async function cifrar(raw, datos) { const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = new Uint8Array(await crip().encrypt({ name: 'AES-GCM', iv: iv }, await claveAES(raw), datos)); const o = new Uint8Array(12 + ct.length); o.set(iv); o.set(ct, 12); return o; }
 async function descifrar(raw, datos) { return new Uint8Array(await crip().decrypt({ name: 'AES-GCM', iv: datos.slice(0, 12) }, await claveAES(raw), datos.slice(12))); }
-async function clavePin(pin, salt) { const k = await crip().importKey('raw', new TextEncoder().encode('rondaP:' + pin), 'PBKDF2', false, ['deriveBits']); return new Uint8Array(await crip().deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: 150000 }, k, 256)); }
+async function clavePin(pin, salt) { const k = await crip().importKey('raw', new TextEncoder().encode('ronda:' + pin), 'PBKDF2', false, ['deriveBits']); return new Uint8Array(await crip().deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: 150000 }, k, 256)); }
 async function comprobarClave(raw) { const v = (dato('ajustes', 'docs') || {}).verif; if (!v) return true; try { const t = new TextDecoder().decode(await descifrar(raw, deb64(v))); return t === 'ronda'; } catch (e) { return false; } }
 async function guardarConPin(raw, pin) { const salt = crypto.getRandomValues(new Uint8Array(16)); const ct = await cifrar(await clavePin(pin, salt), raw); await DB.set('docs:' + S.sid, { salt: b64(salt), ct: b64(ct), intentos: 0, hasta: 0 }); }
 function abrirSesionDocs(raw) { DOC.clave = raw; DOC.hasta = Date.now() + 5 * 60000; clearTimeout(DOC.t); DOC.t = setTimeout(cerrarSesionDocs, 5 * 60000); }
@@ -6068,7 +6073,7 @@ Object.assign(window.RONDA || (window.RONDA = {}), { animarArranque: animarArran
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 4;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+const DATOS_V = 5;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
 let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
@@ -6077,7 +6082,9 @@ const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids lar
    Lo demás (invitar, copias, tarjetas…) responde que en la prueba no hay conexión. */
 const RN_PARTES = {};
 const rnEv = () => lista('eventos').map(e => ({ id: e.id, titulo: e.titulo, inicio: e.inicio, fin: e.fin, todoDia: !!e.todoDia, lugar: e.lugar || '', notas: e.notas || '', tipo: e.tipo || 'recordatorio', quien: e.quien || '', aviso: e.aviso === undefined ? '' : e.aviso, ronda: e.ronda || '' }));
-async function api(a, x) {
+/* 0.3.0: en «casa» va al script de verdad (el de 01_base.js, sin tocar); en «ejemplo», a este de mentira */
+function api(a, x, o) { return EN_CASA ? apiReal(a, x, o) : apiEjemplo(a, x); }
+async function apiEjemplo(a, x) {
   x = x || {};
   await espera(60);
   const ok = o => Object.assign({ ok: true, sv: 'prueba' }, o || {});
@@ -6111,11 +6118,13 @@ async function api(a, x) {
   }
   throw ErrR('prueba', 'En la prueba no hay conexión con Google.');
 }
-Sync.ya = async () => { S.cola = {}; S.red.ok = true; S.red.error = null; S.red.ultimo = Date.now(); };
-Sync.pronto = () => { setTimeout(() => { S.cola = {}; }, 0); };
-Sync.programar = () => { };
-Cal.pronto = () => { };
-Cal.ya = async () => { };
+if (!EN_CASA) {
+  Sync.ya = async () => { S.cola = {}; S.red.ok = true; S.red.error = null; S.red.ultimo = Date.now(); };
+  Sync.pronto = () => { setTimeout(() => { S.cola = {}; }, 0); };
+  Sync.programar = () => { };
+  Cal.pronto = () => { };
+  Cal.ya = async () => { };
+}
 
 /* ---------- Generar los datos de ejemplo ---------- */
 function crearEjemplo() {
@@ -6127,7 +6136,7 @@ function crearEjemplo() {
   const dom = d(dsem === 7 ? 7 : 7 - dsem), lunPasado = d(dsem === 1 ? -7 : 1 - dsem), lunSig = d(8 - dsem);
 
   pon('espacio', 'espacio', { nombre: 'Nuestra casa', tipo: 'hogar', color: COL[4] });
-  pon('personas', PI, { nombre: 'Iña', color: COL[0], alta: 1, barra: ['tareas', 'compra', 'menu'] });
+  pon('personas', PI, { nombre: 'Iña', color: COL[0], alta: 1, barra: ['tareas', 'compra', 'menu'], inicio: ['tareas', 'semana', 'rapido', 'gastoRapido', 'plantas'], inicioOcultas: ['hoy', 'proximos'] });
   pon('personas', PR, { nombre: 'Ru', color: COL[5], alta: 2, barra: ['tareas', 'compra', 'menu'] });
 
   /* Tareas: las de la maqueta, con fechas de esta semana */
@@ -6228,8 +6237,9 @@ function crearEjemplo() {
   [['En el menú de la semana, cuando el texto es muy largo se corta en la tarjeta de Inicio', 'menu', PI, 0, 'p'], ['Poder cambiar el orden de las plantas arrastrando', 'plantas', PR, 1, 'p'], ['Al añadir un gasto desde Inicio, que recuerde quién pagó la última vez', 'gastos', PI, 2, 'p'], ['El candado de las tareas privadas', 'tareas', PI, 20, 'h']].forEach(f => pon('feedback', id('fb'), { texto: f[0], sec: f[1], adj: [], por: f[2], creado: ahora - f[3] * 86400000, estado: f[4] }));
   /* 0.2.1 · Actividad: unos cambios de Ru para probar «Deshacer» y «Rehacer» */
   pon('notas', 'nota-ejemplo-borrada', { titulo: 'Lista de la ferretería', emoji: '', html: '<p>Tacos, tornillos y una bombilla E27</p>', texto: 'Tacos, tornillos y una bombilla E27', color: COL[2], editada: ahora - 3 * 86400000, por: PR, fijada: false, _b: 1 });
-  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000, desh: 0, ant: { para: PR }, nue: { para: 'todos' } });
-  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000, desh: 0 });
+  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000 });
+  actLocPoner('a-ejemplo-1', { ant: { para: PR }, nue: { para: 'todos' } });
+  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000 });
   return recs;
 }
 
@@ -6250,6 +6260,7 @@ async function cargarPrueba() {
 }
 /* Guardar también la marca de los datos de ejemplo */
 function guardarLocal(ya) {
+  if (EN_CASA) return guardarLocalReal(ya);
   if (!RN_CARGADO) return;
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: 0, sid: 'prueba', ejemploV: DATOS_V }); };
@@ -6269,7 +6280,7 @@ Object.keys(ICONOS_NUEVOS).forEach(k => { ICONOS[k] = ICONOS_NUEVOS[k]; });
 function rnIc(id, s, sw) {
   const o = ICONOS[id];
   if (!o) return '';
-  return '<svg class="rn-ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + o[0] + '</svg>';
+  return '<svg class="rn-ic" data-i="' + id + '" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + o[0] + '</svg>';
 }
 /* La función antigua «ic» también pinta ya los iconos nuevos (sin puntos) */
 function ic(id, s, ci, color) { return '<i class="ic" style="width:' + (s || 24) + 'px;height:' + (s || 24) + 'px' + (color ? ';color:' + color : '') + '">' + rnIc(id, s || 24) + '</i>'; }
@@ -6426,7 +6437,9 @@ const rnTitulo = (t, o) => { o = o || {}; return (o.atras ? '<div class="rn-atra
 /* Avatar: la inicial sobre el color de la persona (Iña coral, Ru azul) */
 const RN_COLPER = { '#F0674B': 'coral', '#F2B824': 'amarillo', '#A6C93A': 'lima', '#2E8B57': 'verde', '#2BB5B0': 'turquesa', '#3C78C8': 'azul', '#9B86E0': 'lavanda', '#EE8AA8': 'rosa' };
 const rnKPer = p => RN_COLPER[String((p && p.color) || '').toUpperCase()] || 'azul';
-const rnAv = (p, s) => p ? '<span class="rn-av rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;font-size:' + (s * 0.383).toFixed(1) + 'px">' + esc((p.nombre || '?').charAt(0).toUpperCase()) + '</span>' : '';
+/* 0.3.0: con su foto si la tiene (la de la hoja, igual que en la app de hoy); si no, la inicial en su color */
+const rnAv = (p, s) => { if (!p) return ''; const img = p.foto && typeof imagen === 'function' ? imagen(p.foto) : null; if (img) return '<span class="rn-av rn-av-foto rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;background-image:url(\'' + img + '\')" role="img" aria-label="' + esc(p.nombre || '') + '"></span>'; return '<span class="rn-av rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;font-size:' + (s * 0.383).toFixed(1) + 'px">' + esc((p.nombre || '?').charAt(0).toUpperCase()) + '</span>'; };
+const rnAvFoto = rnAv;
 /* Casilla redonda: vacía, marcada (fondo b, marca en t) o atrasada (borde rojo) */
 const rnCk = (on, atras, a, id) => '<button class="rn-ck' + (on ? ' rn-on' : '') + (atras ? ' rn-atr' : '') + '" data-a="' + a + '" data-id="' + id + '" aria-label="' + (on ? 'Marcar como pendiente' : 'Marcar como hecha') + '" role="checkbox" aria-checked="' + (on ? 'true' : 'false') + '">' + rnTick + '</button>';
 /* Aro de avance */
@@ -6607,10 +6620,11 @@ function rnGrupoDe(x) {
   if (!x.fecha) return ['z', 'Sin fecha'];
   if (x.fecha < h) return ['a', 'Atrasadas'];
   const d = deISO(x.fecha), dif = Math.round((d - hoy0()) / 86400000);
-  if (dif === 0) return [x.fecha, 'Hoy, ' + DIAS[d.getDay()]];
-  if (dif === 1) return [x.fecha, 'Mañana, ' + DIAS[d.getDay()]];
-  if (dif < 7) return [x.fecha, DIAS_CAP[d.getDay()]];
-  return [x.fecha, DIAS_CAP[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()]];
+  /* 0.3.0: con la fecha entera */
+  const larga = DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+  if (dif === 0) return [x.fecha, 'Hoy, ' + larga];
+  if (dif === 1) return [x.fecha, 'Mañana, ' + larga];
+  return [x.fecha, cap(larga)];
 }
 /* La nota gris debajo del título */
 function rnNotaTarea(x, f) {
@@ -6618,8 +6632,7 @@ function rnNotaTarea(x, f) {
   if (x.hecho) return 'Hecha por ' + esc(nombreDe(x.hechoPor) || 'alguien') + (x.hechoEn ? ', ' + rnDiaTexto(isoDia(new Date(x.hechoEn)), true) : '');
   if (x.fecha && x.fecha < h) { const d = deISO(x.fecha); return 'Era ' + (Math.round((hoy0() - d) / 86400000) < 7 ? 'el ' + DIAS[d.getDay()] + ' ' + d.getDate() : 'el ' + d.getDate() + ' de ' + MESES[d.getMonth()]); }
   const p = [];
-  if (x.para === 'todos') p.push('De todos');
-  else if (x.para && x.para !== S.cfg.persona) p.push('De ' + esc(nombreDe(x.para)));
+  /* 0.3.0: de quién es va a la derecha (su foto, o «Todos») */
   if (x.repite && x.repite.cada) p.push(textoRepe(x.repite));
   if (x.limite) p.push('Límite: ' + rnDiaTexto(x.limite, true));
   return p.join(' · ');
@@ -6628,7 +6641,12 @@ function rnFilaTarea(x, f) {
   const atras = !x.hecho && x.fecha && x.fecha < hoyISO(), nota = rnNotaTarea(x, f);
   return '<div class="rn-rw rn-it' + (x.hecho ? ' rn-dn' : '') + '" data-id="' + x.id + '" data-lp="rnMenuTarea">' + rnCk(x.hecho, atras, 'rnHacer', x.id) +
     '<button class="rn-rwt" data-a="rnVerTarea" data-id="' + x.id + '"><span class="rn-t">' + esc(x.titulo) + rnCandado(x) + '</span>' + (nota ? '<span class="rn-n' + (atras ? ' rn-rojo' : '') + '">' + nota + '</span>' : '') + '</button>' +
-    (x.hora && !x.hecho ? '<span class="rn-hr">' + esc(x.hora) + '</span>' : '') + '</div>';
+    (x.hora && !x.hecho ? '<span class="rn-hr">' + esc(x.hora) + '</span>' : '') + rnDeQuien(x) + '</div>';
+}
+/* A la derecha: la foto de quién es la tarea, o «Todos» */
+function rnDeQuien(x) {
+  if (x.para === 'todos' || !x.para) return '<span class="rn-q rn-todos">Todos</span>';
+  const p = dato('personas', x.para); return p ? '<span class="rn-dq" title="' + esc(p.nombre) + '">' + rnAvFoto(p, 26) + '</span>' : '';
 }
 /* Filtro: por a quién está asignada. Las de «Todos» salen en todos los filtros. */
 function rnFiltrar(l, f) {
@@ -6704,11 +6722,11 @@ ACC.rnHacer = (el, ev) => {
   const h = !x.hecho;
   el.classList.toggle('rn-on', h); el.classList.remove('rn-atr');
   const fila = el.closest('.rn-it'); if (fila) fila.classList.toggle('rn-dn', h);
-  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0 });
-  setTimeout(() => {
-    Nav.refrescar(true);
-    if (h) toast('«' + x.titulo + '» hecha', 'Deshacer', () => { cambiar('tareas', x.id, { hecho: false, hechoPor: '', hechoEn: 0 }); Nav.refrescar(true); }, 'hecho');
-  }, 420);
+  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
+  /* 0.3.0 (ficha 4): 700 ms para ver qué se ha marcado; luego la fila se recoge (340 ms) y se reordena */
+  if (h) toast('«' + x.titulo + '» hecha', 'Deshacer', () => { cambiar('tareas', x.id, { hecho: false, hechoPor: '' }); Nav.refrescar(true); }, 'hecho');
+  setTimeout(() => { if (h && fila && !REDUCIR) fila.classList.add('rn-recoge'); }, 700);
+  setTimeout(() => Nav.refrescar(true), h ? (REDUCIR ? 700 : 1040) : 300);
 };
 
 /* ---------- Ver tarea (tipo 03) ---------- */
@@ -6737,9 +6755,9 @@ ACC.rnHacerVer = el => {
   const x = dato('tareas', el.dataset.id); if (!x) return;
   if (!x.hecho && x.repite && x.repite.cada) { ACC.rnHacer(el); setTimeout(() => Nav.atras(), 450); return; }
   const h = !x.hecho;
-  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0 });
+  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
   Nav.atras();
-  toast('«' + x.titulo + '» ' + (h ? 'hecha' : 'pendiente otra vez'), 'Deshacer', () => { cambiar('tareas', x.id, { hecho: !h, hechoPor: !h ? S.cfg.persona : '', hechoEn: !h ? Date.now() : 0 }); Nav.refrescar(true); }, 'hecho');
+  toast('«' + x.titulo + '» ' + (h ? 'hecha' : 'pendiente otra vez'), 'Deshacer', () => { cambiar('tareas', x.id, { hecho: !h, hechoPor: !h ? S.cfg.persona : '', hechoEn: Date.now() }); Nav.refrescar(true); }, 'hecho');
 };
 
 /* ---------- Mantener pulsada una tarea: sus opciones (tipo 05) ---------- */
@@ -6842,9 +6860,15 @@ ACC.rnGuardarTarea = () => {
   const t = RN_T, titulo = cap(String(t.titulo || '').trim());
   if (!titulo) { const i = $('#rnTit'); if (i) i.focus(); return toast('Escribe qué hay que hacer.'); }
   const id = t.id || 'tarea-' + uid();
-  const campos = { titulo: titulo, para: t.solo ? S.cfg.persona : (t.para || S.cfg.persona), fecha: t.fecha || '', hora: t.hora || '', repite: t.repite && t.repite.cada ? t.repite : null, aviso: t.aviso || '', cal: false, solo: t.solo ? S.cfg.persona : '', limite: t.limite || '', notas: t.notas || '' };
+  const campos = { titulo: titulo, para: t.solo ? S.cfg.persona : (t.para || S.cfg.persona), fecha: t.fecha || '', hora: t.hora || '', repite: t.repite && t.repite.cada ? t.repite : null, aviso: '', cal: false, solo: t.solo ? S.cfg.persona : '', limite: t.limite || '', notas: t.notas || '' };
+  /* 0.3.0: igual que la app de hoy. Con aviso va al calendario de la casa (necesita fecha); «Solo para mí», nunca. */
+  const conAviso = !t.solo && t.aviso !== '' && t.aviso != null;
+  if (conAviso && !campos.fecha) return toast('Para avisarte, ponle fecha.');
+  campos.cal = conAviso; campos.aviso = conAviso ? String(t.aviso) : '';
+  const antesCal = t.id ? (dato('tareas', t.id) || {}).cal : false;
   if (!t.id) Object.assign(campos, { hecho: false, creadoPor: S.cfg.persona, orden: Date.now() });
   cambiar('tareas', id, campos);
+  if (campos.cal || antesCal) { try { marcarCal('tareas', id); } catch (e) { anotar('calendario', e); } }
   cerrarHoja();
   Nav.refrescar(true);
   toast(t.id ? 'Tarea cambiada' : 'Tarea guardada', t.id ? null : 'Deshacer', () => { cambiar('tareas', id, { _b: 1 }); Nav.refrescar(true); }, 'hecho');
@@ -7124,7 +7148,7 @@ ACC.rnVaciarLista = el => { cerrarHoja(); const hs = lista('compra').filter(x =>
 ACC.marcar = el => {
   const x = dato('compra', el.dataset.id); if (!x) return;
   const h = !x.hecho; const f = el.closest('.rn-it'); if (f) f.classList.toggle('rn-dn', h);
-  cambiar('compra', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0, veces: h ? (x.veces || 1) + 1 : x.veces });
+  cambiar('compra', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
   setTimeout(() => Nav.refrescar(true), 260);
 };
 
@@ -7426,13 +7450,27 @@ function registrarActividad(col, id, campos, previo) {
   if (acc !== 'n' && acc !== 'b' && acc !== 'r') {
     const ant = {}, nue = {};
     ks.forEach(k => { if (CAMPOS_MUDOS.indexOf(k) >= 0) return; ant[k] = antes && antes[k] !== undefined ? antes[k] : null; nue[k] = campos[k]; });
-    const prev = S.recs.actividad && S.recs.actividad[aid] && S.recs.actividad[aid].f;
+    const prev = actLoc(aid);
     r.ant = Object.assign({}, ant, prev && prev.ant || {});
     r.nue = Object.assign({}, prev && prev.nue || {}, nue);
     if (JSON.stringify(r.ant).length + JSON.stringify(r.nue).length > 6000) { delete r.ant; delete r.nue; }
   }
+  /* 0.3.0: «cómo estaba» y «cómo quedó» se guardan SOLO en este móvil. A la hoja va la línea con los mismos campos que hoy. */
+  if (r.ant) actLocPoner(aid, { ant: r.ant, nue: r.nue });
+  delete r.ant; delete r.nue; delete r.desh;
   _cambiarBase('actividad', aid, r);
 }
+/* Lo que la actividad guarda solo en el móvil (por modo): { aid: { ant, nue, desh } } */
+const ACT_K = 'rondaP-act-' + MODO;
+let ACT_LOC = null;
+function actLocTodo() { if (!ACT_LOC) { try { ACT_LOC = JSON.parse(localStorage.getItem(ACT_K) || '{}') || {}; } catch (e) { ACT_LOC = {}; } } return ACT_LOC; }
+function actLoc(aid) { return actLocTodo()[aid] || null; }
+function actLocPoner(aid, o) {
+  const t = actLocTodo(); t[aid] = Object.assign({}, t[aid] || {}, o, { t: Date.now() });
+  const ks = Object.keys(t); if (ks.length > 400) ks.sort((a, b) => (t[a].t || 0) - (t[b].t || 0)).slice(0, ks.length - 400).forEach(k => delete t[k]);
+  try { localStorage.setItem(ACT_K, JSON.stringify(t)); } catch (e) { anotar('actividad local', e); }
+}
+const actConLoc = a => a ? Object.assign({}, a, actLoc(a.id) || {}) : a;
 /* Qué hace «Deshacer» y «Rehacer» en cada línea */
 function rnPasoActividad(a, deshacer) {
   if (a.acc === 'n' || a.acc === 'r') return { _b: deshacer ? 1 : 0 };
@@ -7440,13 +7478,13 @@ function rnPasoActividad(a, deshacer) {
   if (deshacer ? a.ant : a.nue) return Object.assign({}, deshacer ? a.ant : a.nue);
   return null;
 }
-function rnSePuedeDeshacer(a) { return !!(S.recs[a.col] && S.recs[a.col][a.ref] && rnPasoActividad(a, true)); }
+function rnSePuedeDeshacer(a) { a = actConLoc(a); return !!(S.recs[a.col] && S.recs[a.col][a.ref] && rnPasoActividad(a, true)); }
 function rnHacerActividad(aid, deshacer) {
-  const a = dato('actividad', aid); if (!a) return;
+  const a = actConLoc(dato('actividad', aid)); if (!a) return;
   const c = rnPasoActividad(a, deshacer); if (!c) return toast('Este cambio no se puede ' + (deshacer ? 'deshacer' : 'rehacer') + '.');
   /* Sin apuntarlo como un cambio nuevo: la misma línea pasa a «deshecho» */
   _cambiarBase(a.col, a.ref, c);
-  _cambiarBase('actividad', aid, { desh: deshacer ? 1 : 0 });
+  actLocPoner(aid, { desh: deshacer ? 1 : 0 });
   Nav.refrescar(true);
   toast(deshacer ? 'Deshecho: «' + (a.txt || COLNOM[a.col]) + '»' : 'Rehecho: «' + (a.txt || COLNOM[a.col]) + '»', deshacer ? 'Rehacer' : 'Deshacer', () => rnHacerActividad(aid, !deshacer), 'deshacer');
 }
@@ -7456,7 +7494,7 @@ ACC.actRecuperar = el => { const a = lista('actividad').find(x => x.ref === el.d
 P.actividad = {
   html: p => {
     p.q = p.q || ''; p.s = p.s || '';
-    let l = actividades(30);
+    let l = actividades(30).map(actConLoc);
     if (p.q) l = l.filter(a => a.q === p.q);
     if (p.s) l = l.filter(a => COLNOM[a.col] === p.s);
     const secs = []; actividades(30).forEach(a => { const s = COLNOM[a.col]; if (s && secs.indexOf(s) < 0) secs.push(s); });
@@ -7591,25 +7629,834 @@ function rnColorFondo() {
 }
 const _barra49 = Nav.barra;
 Nav.barra = function () { _barra49.call(this); try { rnColorFondo(); } catch (x) { } };
-async function rnArrancar() {
-  const t0 = performance.now();
-  const ar = $('#arranque');
-  aplicarTema();
-  /* 0.2.1: la animación de la 1.8.0 con el logo nuevo (48_rn_021.js), a la vez que se cargan los datos */
-  const anim = ar ? rnAnimarArranque(ar) : Promise.resolve();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
-  await cargarPrueba();
-  await anim;
-  Nav.raiz('inicio');
-  /* La app entra con un fundido, sin salto */
-  const capas = [$('#app'), $('#nav')].filter(Boolean); if (!REDUCIR) { capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya')))); setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900); }
-  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 650); }
-}
+/* 0.3.0: rnArrancar está en 52_rn_arranque.js (ejemplo o casa) */
 /* Sin menú del iPhone al mantener pulsado (A2) */
 document.addEventListener('contextmenu', ev => { if (ev.target.closest('.rn-barra,.rn-it,[data-lp]')) ev.preventDefault(); });
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema); } catch (e) { }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { aplicarTema(); if (Nav.actual() && !hojaAbierta) Nav.refrescar(); } });
-window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
+
+/* ---- 50_rn_casa.js ---- */
+/* ===================== 0.3.0 · CONECTAR CON MI CASA =====================
+   - Dos modos: «ejemplo» (datos de mentira, en el almacén ronda_prueba) y «casa» (la hoja de Google de verdad, en ronda_prueba_casa).
+   - En «casa» los datos se leen y se guardan EXACTAMENTE como en la app de hoy: mismo script, mismas colecciones, mismos campos.
+     La sincronización es la de 02_sync.js, sin tocar. El script no cambia.
+   - No hay en el código ninguna dirección de script, ni claves, ni códigos: llegan con el código RONDA1 que se pega al conectar.
+   - Lo que solo tiene sentido en este móvil mientras conviven las dos apps se guarda SOLO en el móvil, nunca en la hoja:
+     el orden y las tarjetas de Inicio, la barra de abajo y el «Deshacer» de Actividad. Al conectar, se parte de lo que ya tenías. */
+
+/* ---------- 1. Inicio y barra: en el móvil, partiendo de lo de la hoja ---------- */
+const LOC_PRE = 'rondaP-loc-' + MODO + '-';
+let LOC_CACHE = null, LOC_DE = '';
+function locLeer() {
+  const k = LOC_PRE + ((S.cfg && S.cfg.persona) || '');
+  if (LOC_DE !== k || !LOC_CACHE) { LOC_DE = k; try { LOC_CACHE = JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { LOC_CACHE = {}; } }
+  return LOC_CACHE;
+}
+function locPoner(o) {
+  const l = Object.assign({}, locLeer(), o); LOC_CACHE = l;
+  try { localStorage.setItem(LOC_DE, JSON.stringify(l)); } catch (e) { anotar('guardar en el móvil', e); }
+}
+/* La persona de este móvil, con lo suyo del móvil encima (una copia: nunca se cambia el dato de la hoja) */
+function yo() {
+  const p = S.cfg ? dato('personas', S.cfg.persona) : null;
+  return p ? Object.assign({}, p, locLeer()) : p;
+}
+function fijarInicio(orden, ocultas) { locPoner({ inicio: orden, inicioOcultas: ocultas }); }
+function fijarCfg(o) { locPoner({ inicioCfg: Object.assign({}, cfgInicio(), o) }); }
+function fijarBarra(b) { locPoner({ barra: b }); Nav.refrescar(true); Nav.barra(); }
+
+/* ---------- 2. Arranque en «casa»: como el iniciar() de la app de hoy ---------- */
+async function cargarCasa() {
+  await DB.abrir();
+  S.cfg = (await DB.get('cfg')) || null;
+  if (!S.cfg || !S.cfg.url || !S.cfg.token) { S.cfg = null; return false; }
+  const d = (await DB.get('datos')) || {};
+  S.recs = d.recs || {}; S.seq = d.seq || 0; S.sid = d.sid || '';
+  S.cola = (await DB.get('cola')) || {};
+  S.cal = (await DB.get('cal')) || null;
+  try { Object.assign(AG.cache, (await DB.get('agenda')) || {}); } catch (e) { }
+  RN_CARGADO = true;
+  Sync.ya().catch(e => anotar('sincronizar', e));
+  return true;
+}
+const rnModoElegido = () => { try { return !!localStorage.getItem('rondaP-modo'); } catch (e) { return true; } };
+const rnHayCasa = () => { try { return localStorage.getItem('rondaP-casa') === '1'; } catch (e) { return false; } };
+const rnNombreCasa = () => { try { return localStorage.getItem('rondaP-casa-nombre') || 'vuestra casa'; } catch (e) { return 'vuestra casa'; } };
+function rnCambiarModo(m) { try { localStorage.setItem('rondaP-modo', m); } catch (e) { } guardarLocal(true); setTimeout(() => location.reload(), 120); }
+
+/* Guardar la conexión en el almacén de «casa» (también desde el modo ejemplo) */
+function rnGuardarEnCasa(kv) {
+  const ls = () => { try { Object.keys(kv).forEach(k => localStorage.setItem('rondaPC:' + k, JSON.stringify(kv[k]))); return true; } catch (e) { return false; } };
+  return new Promise(ok => {
+    let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } };
+    setTimeout(() => fin(ls()), 3000);
+    try {
+      const r = indexedDB.open('ronda_prueba_casa', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => {
+        try { const t = r.result.transaction('kv', 'readwrite'), s = t.objectStore('kv'); Object.keys(kv).forEach(k => s.put(kv[k], k)); t.oncomplete = () => { r.result.close(); fin(true); }; t.onerror = () => fin(ls()); }
+        catch (e) { fin(ls()); }
+      };
+      r.onerror = () => fin(ls());
+    } catch (e) { fin(ls()); }
+  });
+}
+function rnBorrarCasa() {
+  return new Promise(ok => {
+    try { Object.keys(localStorage).filter(k => /^rondaPC:|^rondaP-loc-casa-|^rondaP-act-casa$/.test(k)).forEach(k => localStorage.removeItem(k)); ['rondaP-casa', 'rondaP-casa-nombre'].forEach(k => localStorage.removeItem(k)); } catch (e) { }
+    try { if (DB.db && EN_CASA) DB.db.close(); const r = indexedDB.deleteDatabase('ronda_prueba_casa'); r.onsuccess = r.onerror = r.onblocked = () => ok(); setTimeout(ok, 1500); } catch (e) { ok(); }
+  });
+}
+
+/* ---------- 3. Piezas de las pantallas de entrada ---------- */
+const rnIluSolo = id => (rnOscuro() ? ILUS_OSC[id] : ILUS[id]) || ILUS[id] || '';
+const rnLogoGrande = s => '<span class="rn-logo rn-logo-g" style="width:' + s + 'px;height:' + s + 'px;min-width:' + s + 'px">' + rnPuntos(Math.round(s * 0.72), 0.085) + '</span>';
+const rnErr = (pg, msg) => { const e = $('[data-r="err"]', pg || (Nav.actual() || {}).el); if (e) e.innerHTML = msg ? '<div class="rn-cd rn-error" role="alert">' + rnChip('aviso', 30) + '<span class="rn-txt">' + esc(msg) + '</span></div>' : ''; else if (msg) toastError(msg); };
+const rnBtnO = (t, a, extra) => '<button class="rn-btnp rn-btno" data-a="' + a + '"' + (extra || '') + '>' + t + '</button>';
+const rnBtnG = (t, a, extra) => '<button class="rn-btnp rn-btng rn-gl" data-a="' + a + '"' + (extra || '') + '>' + t + '</button>';
+const rnInfo = (id, t) => '<div class="rn-cd rn-info">' + rnChip(id, 30) + '<span class="rn-txt">' + t + '</span></div>';
+async function rnEspera(el, f) { if (!el || el.classList.contains('rn-cargando')) return; el.classList.add('rn-cargando'); el.disabled = true; try { return await f(); } finally { el.classList.remove('rn-cargando'); el.disabled = false; } }
+
+/* Bienvenida: sin «Crear una casa». Solo «Tengo un código» y «Probar con datos de ejemplo». */
+P.bienvenida = {
+  rn: true, raiz: true, sinBarra: true, fija: true,
+  html: () => '<div class="rn-bienv">' + rnLogoGrande(132) + '<div class="rn-bienv-t">Ronda</div><p class="rn-bienv-s">La casa, al día.</p></div>',
+  fijo: () => '<div class="rn-pie-btns">' + rnBtnO('Tengo un código', 'rnTengoCodigo') + rnBtnG('Probar con datos de ejemplo', 'rnProbarEjemplo') +
+    '<p class="rn-pie-nota">Con el código entras en vuestra casa de verdad. Los datos de ejemplo no se mezclan con los vuestros.</p></div>'
+};
+ACC.rnTengoCodigo = () => { S.alta = { modo: 'unirse' }; Nav.ir('unirse', {}); };
+ACC.tengoCodigo = ACC.rnTengoCodigo;
+ACC.rnProbarEjemplo = () => {
+  if (EN_CASA) return rnCambiarModo('ejemplo');
+  try { localStorage.setItem('rondaP-modo', 'ejemplo'); } catch (e) { }
+  const viejas = Nav.pila.slice(); Nav.pila = [];
+  Nav.raiz('inicio'); viejas.forEach(v => setTimeout(() => v.el.remove(), 400));
+};
+
+/* Tengo un código */
+P.unirse = {
+  rn: true, sinBarra: true,
+  html: () => rnTitulo('Tengo un código', { atras: 'Atrás' }) + '<div class="rn-ilu rn-ilu-m">' + rnIluSolo('invita-a-los-tuyos') + '</div>' +
+    '<p class="rn-txt" style="margin:10px 4px 0">Pega el código que te ha pasado la otra persona. Empieza por RONDA1.</p>' +
+    '<label class="rn-fld rn-fld-alto" style="margin-top:12px"><small>Código de invitación</small><textarea id="uCod" rows="4" placeholder="RONDA1-…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea></label>' +
+    '<div class="rn-dcha"><button class="rn-qc" data-a="rnPegar" data-sel="#uCod">' + rnIc('pegar', 18, 2) + '<span>Pegar</span></button></div>' +
+    rnInfo('informacion', 'Pégalo aquí, dentro de Ronda. Si tocas el código en un mensaje se abre Safari, que guarda sus datos aparte de la app del icono.') +
+    '<div data-r="err"></div>' + '<button class="rn-btnp rn-btno" data-a="rnComprobarCodigo" style="margin-top:18px">Entrar</button>'
+};
+ACC.rnPegar = async el => { const t = $(el.dataset.sel); if (!t) return; try { const v = await navigator.clipboard.readText(); if (v) { t.value = v; return; } } catch (e) { } t.focus(); toast('Mantén pulsado en el recuadro y elige «Pegar».'); };
+ACC.rnComprobarCodigo = el => rnEspera(el, async () => {
+  const pg = Nav.actual().el; rnErr(pg, '');
+  const k = leerPaquete(($('#uCod') || {}).value);
+  if (k.error) return rnErr(pg, k.error);
+  S.alta = { modo: 'unirse', url: k.url, codigo: k.codigo };
+  try {
+    const inv = await apiReal('invitacion-ver', { codigo: k.codigo }, { url: k.url, sinToken: true });
+    if (inv.alta) return rnErr(pg, 'Ese código es para crear una casa nueva. En esta prueba solo se entra en una casa que ya existe: pide en la app de hoy un código en Personas.');
+    S.alta.inv = inv;
+    Nav.ir(inv.persona ? 'reconectar' : 'perfil', {});
+  } catch (e) { rnErr(pg, e.message); }
+});
+
+/* Volver a conectar (alguien que ya estaba: no se crea una persona nueva) */
+P.reconectar = {
+  rn: true, sinBarra: true,
+  html: () => { const p = (S.alta && S.alta.inv && S.alta.inv.persona) || {}; return rnTitulo('', { atras: 'Atrás' }) + '<div class="rn-centro">' + rnAv(p, 140) + '<div class="rn-hola">Hola, ' + esc(p.nombre || '') + '</div><p class="rn-txt">Vas a conectar este móvil a «' + esc(((S.alta.inv || {}).espacio || {}).nombre || 'vuestra casa') + '» con tu perfil de siempre.</p></div><div data-r="err"></div>' + '<button class="rn-btnp rn-btno" data-a="rnUnirseYa" style="margin-top:26px">Conectar</button>'; }
+};
+/* Quién eres (persona nueva) */
+P.perfil = {
+  rn: true, sinBarra: true,
+  html: () => {
+    const usados = ((S.alta.inv && S.alta.inv.personas) || []).map(p => String(p.color).toUpperCase());
+    if (!S.alta.color || usados.indexOf(S.alta.color) >= 0) S.alta.color = COL.find(c => usados.indexOf(c) < 0) || COL[0];
+    return rnTitulo('Quién eres', { atras: 'Atrás', sub: 'Así te verán los tuyos' }) +
+      '<div class="rn-centro" style="padding-top:12px">' + rnAv({ nombre: S.alta.nombre || '?', color: S.alta.color }, 110) + '</div>' +
+      '<label class="rn-fld" style="margin-top:18px"><small>Nombre</small><input id="pNom" maxlength="30" value="' + esc(S.alta.nombre || '') + '" placeholder="Cómo te llaman" autocomplete="given-name"></label>' +
+      '<p class="rn-et">Tu color</p><div class="rn-cols">' + COL.map((c, i) => '<button class="rn-cdot' + (S.alta.color === c ? ' rn-on' : '') + '" style="background:' + c + '" data-a="rnColorAlta" data-c="' + c + '"' + (usados.indexOf(c) >= 0 ? ' disabled' : '') + ' aria-label="' + NOMCOL[i] + '"></button>').join('') + '</div>' +
+      '<p class="rn-txt" style="margin:12px 4px 0">La foto la puedes poner luego en Ajustes › Mi perfil.</p><div data-r="err"></div>' +
+      '<button class="rn-btnp rn-btno" data-a="rnUnirseYa" style="margin-top:20px">Continuar</button>';
+  }
+};
+ACC.rnColorAlta = el => { const n = $('#pNom'); if (n) S.alta.nombre = n.value; S.alta.color = el.dataset.c; Nav.refrescar(true); };
+ACC.rnUnirseYa = el => rnEspera(el, async () => {
+  const pg = Nav.actual(), a = S.alta; rnErr(pg.el, '');
+  const extra = { codigo: a.codigo }, nueva = pg.id === 'perfil';
+  if (nueva) {
+    a.nombre = ($('#pNom').value || '').trim();
+    if (!a.nombre) { $('#pNom').focus(); return rnErr(pg.el, 'Escribe tu nombre.'); }
+    extra.nombre = a.nombre; extra.color = a.color;
+  }
+  try {
+    const r = await apiReal('unirse', extra, { url: a.url, sinToken: true });
+    const cfg = { url: a.url, token: r.token, persona: r.persona, rol: r.rol, alta: Date.now() };
+    const ok = await rnGuardarEnCasa({ cfg: cfg, datos: { recs: {}, seq: 0, sid: r.sid || '' }, cola: {} });
+    if (!ok) return rnErr(pg.el, 'No he podido guardar la conexión en este móvil. Vuelve a intentarlo.');
+    try {
+      localStorage.setItem('rondaP-casa', '1');
+      localStorage.setItem('rondaP-casa-nombre', ((a.inv || {}).espacio || {}).nombre || '');
+      localStorage.setItem('rondaP-bienvenida', '1');
+      if (nueva) localStorage.setItem('rondaP-onb-pend', r.rol || 'miembro'); else localStorage.setItem('rondaP-inicio-elegido', '1');
+    } catch (e) { }
+    rnCambiarModo('casa');
+  } catch (e) {
+    if (e.code === 'color' && nueva) { a.inv = await apiReal('invitacion-ver', { codigo: a.codigo }, { url: a.url, sinToken: true }).catch(() => a.inv); Nav.refrescar(true); }
+    rnErr(Nav.actual().el, e.message);
+  }
+});
+
+/* Presentación: solo para personas NUEVAS en la casa */
+const RN_ONB = () => [
+  ['invita-a-los-tuyos', 'Ya estás en ' + (espacio().nombre || 'vuestra casa'), personas().map(p => p.nombre).sort((a, b) => a.localeCompare(b, 'es')).join(' y ') + (personas().length > 1 ? ' ya estáis aquí.' : ' ya estás aquí.') + ' Lo que añada uno, lo ve el otro al momento.'],
+  ['tus-datos-tuyos', 'Tus datos, tuyos', 'Todo se guarda en vuestro Google. Los documentos importantes van cifrados en tu móvil, con tu código de 4 cifras.'],
+  ['avisos-a-tiempo', 'Avisos a tiempo', 'Los recordatorios llegan a vuestro calendario de Google, con su alarma.']
+].concat(FUNCIONES.slice(1).map(f => [f[0], f[1], f[2]]));
+P.onb = {
+  rn: true, sinBarra: true, raiz: true,
+  html: p => { const L = RN_ONB(), i = Math.min(p.paso || 0, L.length - 1), o = L[i]; return '<div class="rn-onb"><div class="rn-dcha"><button class="rn-saltar" data-a="rnOnbFin">Saltar</button></div><div class="rn-ilu rn-ilu-g">' + rnIluSolo(o[0]) + '</div><h1 class="rn-onb-t">' + esc(o[1]) + '</h1><p class="rn-txt rn-onb-s">' + esc(o[2]) + '</p><div class="rn-dots">' + L.map((x, j) => '<i' + (j === i ? ' class="rn-on"' : '') + '></i>').join('') + '</div></div>'; },
+  fijo: p => { const ult = (p.paso || 0) >= RN_ONB().length - 1; return '<div class="rn-pie-btns">' + (!ult ? rnBtnO('Siguiente', 'rnOnbSig') : esAdmin() && !S.cal ? rnBtnO('Elegir el calendario', 'rnOnbCal') + rnBtnG('Empezar', 'rnOnbFin') : rnBtnO('Empezar', 'rnOnbFin')) + '</div>'; }
+};
+ACC.rnOnbSig = () => { const p = Nav.actual().params; Nav.raiz('onb', { paso: (p.paso || 0) + 1 }); };
+ACC.rnOnbFin = () => { try { localStorage.removeItem('rondaP-onb-pend'); } catch (e) { } Nav.raiz('inicio'); };
+ACC.rnOnbCal = () => { ACC.rnOnbFin(); setTimeout(() => Nav.ir('avisos', {}), 380); };
+P.funciones = Object.assign({}, P.onb, { raiz: false, html: p => P.onb.html(Object.assign({ paso: 3 }, p)) });
+
+/* Este móvil ya no está conectado */
+P.anulado = {
+  rn: true, sinBarra: true, raiz: true,
+  html: () => '<div class="rn-centro" style="padding-top:90px">' + '<div class="rn-ilu rn-ilu-g">' + rnIluSolo('algo-ha-fallado') + '</div><div class="rn-hola" style="font-size:28px">Este móvil ya no está conectado</div><p class="rn-txt">Quien administra la casa ha quitado este acceso. Si es un error, pídele un código nuevo.</p></div>',
+  fijo: () => '<div class="rn-pie-btns">' + rnBtnO('Tengo un código', 'rnTengoCodigo') + rnBtnG('Probar con datos de ejemplo', 'rnProbarEjemplo') + '</div>'
+};
+const _anulado50 = accesoAnulado;
+accesoAnulado = function () { try { localStorage.removeItem('rondaP-casa'); localStorage.removeItem('rondaP-modo'); } catch (e) { } return _anulado50(); };
+
+/* ---------- 4. Ajustes › Tus datos (82) ---------- */
+P.conexion = {
+  rn: true,
+  html: () => {
+    const e = espacio(), x = yo() || {};
+    const cab = EN_CASA
+      ? '<div class="rn-cd rn-fila-g">' + rnLogoGrande(46) + '<span class="rn-fat"><b>' + esc(e.nombre || 'Vuestra casa') + '</b><span class="rn-n">Conectada a vuestro Google · ' + esc(x.nombre || '') + '</span></span><span class="rn-tg rn-k-verde">' + (S.red.ok ? 'Conectada' : 'Sin conexión') + '</span></div>'
+      : '<div class="rn-cd rn-fila-g">' + rnLogoGrande(46) + '<span class="rn-fat"><b>Datos de ejemplo</b><span class="rn-n">Iña y Ru, inventados. No van a ningún sitio.</span></span><span class="rn-tg">Ejemplo</span></div>';
+    const op = (id, t, a, peligro) => '<button class="rn-rw rn-fa' + (peligro ? ' rn-rojo' : '') + '" data-a="' + a + '"><span class="rn-chip">' + rnIc(id, 26, 2) + '</span><span class="rn-fat"><span class="rn-t">' + t + '</span></span>' + (peligro ? '' : rnFle) + '</button>';
+    return rnTitulo('Tus datos', { atras: 'Ajustes' }) + cab +
+      (EN_CASA ? '<p class="rn-txt rn-pie-txt">La app vieja y esta usan la misma hoja: lo que apuntes aquí lo ves allí, y al revés. El orden de Inicio, la barra y el «Deshacer» de Actividad se guardan solo en este móvil.</p>'
+        : '<p class="rn-txt rn-pie-txt">' + (rnHayCasa() ? 'Este móvil también está conectado a «' + esc(rnNombreCasa()) + '». Lo vuestro sigue guardado aparte.' : 'Para ver vuestra casa de verdad, pide en la app de hoy un código: Personas › tu persona › «Crear código para volver a conectar».') + '</p>') +
+      '<h2 class="rn-gt">Cambiar</h2><div class="rn-cd">' +
+      (EN_CASA ? op('modulo-documentos', 'Ver los datos de ejemplo', 'rnIrEjemplo') + op('cerrar-sesion', 'Desconectar este móvil', 'rnDesconectar', 1)
+        : (rnHayCasa() ? op('casa', 'Volver a ' + esc(rnNombreCasa()), 'rnIrCasa') + op('cerrar-sesion', 'Desconectar este móvil de vuestra casa', 'rnDesconectar', 1) : op('casa', 'Conectar con mi casa', 'rnTengoCodigo'))) +
+      '</div>' + (EN_CASA ? '<p class="rn-txt rn-pie-txt" style="font-size:13px">Al volver a los datos de ejemplo, lo vuestro no se borra: se queda guardado aparte.</p>' : '');
+  }
+};
+ACC.rnIrEjemplo = () => rnCambiarModo('ejemplo');
+ACC.rnIrCasa = () => rnCambiarModo('casa');
+ACC.rnDesconectar = async () => {
+  if (!(await preguntar('¿Desconectar este móvil?', 'Para volver a entrar en vuestra casa necesitarás un código nuevo. Los datos de ejemplo siguen aquí.', 'Desconectar', true))) return;
+  await rnBorrarCasa();
+  try { localStorage.setItem('rondaP-modo', 'ejemplo'); } catch (e) { }
+  setTimeout(() => location.reload(), 120);
+};
+
+/* ---------- 5. Ajustes (81): con «Tus datos» y las filas nuevas ---------- */
+P.ajustes.html = () => {
+  const x = yo() || {}, e = espacio(), ps = personas().slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
+  let tema = 'auto'; try { tema = localStorage.getItem('rondaP-tema') || 'auto'; } catch (er) { }
+  const fila = (id, t, s, ir) => '<button class="rn-rw rn-fa" data-a="rnAjIr" data-ir="' + ir + '"><span class="rn-chip">' + rnIc(id, 26, 2) + '</span><span class="rn-fat"><span class="rn-t">' + t + '</span>' + (s ? '<span class="rn-n">' + s + '</span>' : '') + '</span>' + rnFle + '</button>';
+  const nt = typeof tarjetas === 'function' ? tarjetas().length : 0;
+  const sync = !EN_CASA ? 'Sin conexión: los datos son de ejemplo' : S.red.ok ? (S.red.ultimo ? 'Al día, ' + rnHace(S.red.ultimo) : 'Conectando…') : 'Sin conexión. Se guardará al volver';
+  const res = x.resumenOff ? 'Desactivado' : 'Activado';
+  let ciudad = ''; try { ciudad = (espacio().tiempo || {}).nombre || (espacio().ciudad || ''); } catch (er) { }
+  return rnTitulo('Ajustes') +
+    '<button class="rn-cd rn-perfil" data-a="rnAjIr" data-ir="miperfil">' + rnAv(x, 50) + '<span class="rn-fat"><b>' + esc(x.nombre || '') + '</b><span class="rn-n">' + (esAdmin() ? 'Administrador' : 'Miembro') + ' de ' + esc(e.nombre || '') + '</span></span>' + rnFle + '</button>' +
+    '<h2 class="rn-gt">La casa</h2><div class="rn-cd">' +
+    fila('nube-sincronizada', 'Tus datos', EN_CASA ? esc(e.nombre || 'Vuestra casa') + ' · conectada' : 'Datos de ejemplo', 'conexion') +
+    fila('casa', 'Nombre y emoji del hogar', esc(e.nombre || ''), 'hogarAj') +
+    fila('personas', 'Personas', ps.map(p => esc(p.nombre)).join(' y '), 'personas') +
+    fila('modulo-calendario', 'Avisos en tu calendario', S.cal ? 'Calendario «' + esc(S.cal.nombre || 'Casa') + '»' : 'Sin elegir', 'avisos') +
+    fila('tarjeta', 'Tarjetas conectadas', nt ? nt + (nt === 1 ? ' tarjeta' : ' tarjetas') : 'Ninguna', 'tarjetasC') +
+    fila('reloj', 'Actividad', 'Quién ha cambiado qué', 'actividad') + '</div>' +
+    '<h2 class="rn-gt">La app</h2><div class="rn-cd">' +
+    fila('sol', 'Apariencia', { claro: 'Claro', oscuro: 'Oscuro', auto: 'Automático' }[tema], 'apariencia') +
+    fila('ordenar', 'Barra de abajo', rnBarra().map(k => rnCorto(k)).join(' y '), 'barra') +
+    fila('paraguas', 'El tiempo', esc(ciudad), 'tiempoAj') +
+    fila('nota', 'Resumen del domingo', res, 'resumenAj') +
+    fila('sincronizar', 'Sincronización', sync, 'sincronizacion') +
+    fila('descargar', 'Copia de seguridad', EN_CASA ? 'En vuestro Google' : 'No hay en la prueba', 'copia') +
+    fila('escudo', 'Comprobaciones', 'Errores y datos del móvil', 'comprobaciones') +
+    fila('informacion', 'Acerca de Ronda', '', 'acerca') + '</div>' +
+    '<p class="rn-version">Ronda · prueba ' + VERSION + ' · ' + (EN_CASA ? 'conectada a ' + esc(e.nombre || 'vuestra casa') : 'datos de ejemplo') + '</p>' +
+    '<p class="rn-version rn-medidas">' + esc(rnMedidas()) + '</p>' +
+    '<button class="rn-version rn-verbv" data-a="rnVerBienvenida">Ver otra vez la animación de la primera vez</button>';
+};
+function rnHace(t) { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ahora mismo' : m < 60 ? 'hace ' + m + ' min' : 'a las ' + hora(new Date(t)); }
+
+/* ---------- 6. Dilo: en «casa» funciona (el script usa su clave de Gemini, guardada en Propiedades del script) ---------- */
+ACC.rnDilo = el => { if (EN_CASA) return Dilo.abrir(); toast('Dilo necesita vuestra casa (usa Google). Con los datos de ejemplo no funciona: conéctate en Ajustes › Tus datos.'); };
+
+/* ---- 51_rn_barra.js ---- */
+/* ===================== 0.3.0 · LA BARRA =====================
+   Opaca: blanca en claro, oscura en oscuro. Orden: Inicio, sección 1, «+», sección 2, Más. Compra pasa a Más.
+   - El «+» siempre gris claro neutro (#EEF1F3; oscuro #34404A) y no cambia de color al cambiar de pestaña.
+   - La pestaña activa lleva el color de su sección; Inicio y las neutras (Ajustes…), gris medio B (#55636B; oscuro #65737B) con icono blanco.
+   - Las dos secciones se eligen en Ajustes › Barra de abajo y se guardan SOLO en este móvil.
+   - Mantener pulsado «Más» sigue funcionando (44_rn_masrapido.js busca .rn-barra .rn-tab[data-id="mas"]).
+   - Al cambiar de pestaña, la pastilla de color se desliza de una a otra (con Reducir movimiento, sin moverse). */
+const RN_BARRA_DEF = ['tareas', 'menu'];
+const RN_BARRA_OK = k => RN_SEC[k] && ['ajustes', 'personas', 'buscar', 'inicio'].indexOf(k) < 0;
+function rnBarra() {
+  const l = locLeer().barra;
+  const b = (Array.isArray(l) ? l : RN_BARRA_DEF).filter(RN_BARRA_OK);
+  RN_BARRA_DEF.forEach(k => { if (b.length < 2 && b.indexOf(k) < 0) b.push(k); });
+  return b.slice(0, 2);
+}
+const RN_NOM_BARRA = { menu: 'Menú', listasr: 'Listas', medicacion: 'Medicinas', documentos: 'Papeles' };
+const rnNomTab = k => RN_NOM_BARRA[k] || rnCorto(k);
+let RN_PILL_X = null;
+
+Nav.barra = function () {
+  let n = $('#nav');
+  if (!n) { n = document.createElement('nav'); n.id = 'nav'; n.setAttribute('aria-label', 'Secciones'); document.body.appendChild(n); }
+  const raiz = this.pila[0], top = this.actual();
+  const fuera = !raiz || P[raiz.id].sinBarra || (top && (P[top.id].sinBarra || (!top.raiz && !P[top.id].rn)));
+  if (fuera) { n.className = 'rn-barra rn-b5 rn-oculta'; try { rnColorFondo(); } catch (x) { } return; }
+  const b = rnBarra(), tabs = [['inicio', 'inicio', 'Inicio'], [b[0], RN_SEC[b[0]][1], rnNomTab(b[0])], null, [b[1], RN_SEC[b[1]][1], rnNomTab(b[1])], ['mas', 'menu', 'Más']];
+  const activa = tabs.some(x => x && x[0] === raiz.id) ? raiz.id : 'mas';
+  const k = rnColorDe(raiz.id, raiz.params), gris = activa === 'inicio' || !k || k === 'neutro';
+  n.className = 'rn-barra rn-b5';
+  n.innerHTML = '<div class="rn-b5c"><i class="rn-pil' + (gris ? ' rn-pil-gris' : ' rn-k-' + k) + '"></i>' + tabs.map(x => x === null
+    ? '<button class="rn-plus5" data-a="rnPlus" aria-label="Añadir">' + rnIc('anadir', 24, 2.2) + '</button>'
+    : '<button class="rn-tab' + (x[0] === activa ? ' rn-on' + (gris ? ' rn-gris' : '') : '') + '" data-a="rnTab" data-id="' + x[0] + '" aria-label="' + x[2] + '"' + (x[0] === activa ? ' aria-current="page"' : '') + '><i>' + rnIc(x[1], 22, x[0] === activa ? 2.1 : 1.8) + '</i><span>' + x[2] + '</span></button>').join('') + '</div>';
+  rnPildora(n);
+  try { rnColorFondo(); } catch (x) { }
+};
+/* La pastilla: se coloca debajo de la pestaña activa; si ya estaba en otra, se desliza */
+function rnPildora(n) {
+  const on = $('.rn-tab.rn-on', n), pil = $('.rn-pil', n), c = $('.rn-b5c', n);
+  if (!on || !pil || !c) return;
+  const pon = () => { const x = on.offsetLeft; pil.style.width = on.offsetWidth + 'px'; return x; };
+  const x = pon();
+  if (RN_PILL_X === null || REDUCIR || RN_PILL_X === x) { pil.style.transform = 'translateX(' + x + 'px)'; RN_PILL_X = x; return; }
+  pil.style.transition = 'none'; pil.style.transform = 'translateX(' + RN_PILL_X + 'px)';
+  on.classList.add('rn-tarde');
+  requestAnimationFrame(() => requestAnimationFrame(() => { pil.style.transition = ''; pil.style.transform = 'translateX(' + x + 'px)'; setTimeout(() => on.classList.remove('rn-tarde'), 160); }));
+  RN_PILL_X = x;
+}
+window.addEventListener('resize', () => { RN_PILL_X = null; const n = $('#nav'); if (n && !n.classList.contains('rn-oculta')) rnPildora(n); });
+ACC.rnTab = el => { if (RN_MR && RN_MR.anular) return; rnAbrir(el.dataset.id); };
+
+/* El «+»: lo de la pantalla de arriba; si aquí no hay nada propio que añadir (Menú, Ajustes…), la hoja «Añadir» de Inicio */
+ACC.rnPlus = () => {
+  const e = Nav.actual(), r = Nav.pila[0];
+  const d = (e && P[e.id].rnPlus) || (r && r === e && P[r.id].rnPlus);
+  if (d) return d();
+  const f = e && $('.fab', e.el); if (f) return f.click();
+  P.inicio.rnPlus();
+};
+
+/* ---------- Ajustes › Barra de abajo ---------- */
+P.barra = {
+  rn: true,
+  html: () => {
+    const b = rnBarra(), op = RN_ORDEN_SEC.filter(RN_BARRA_OK);
+    const vista = [['inicio', 'inicio', 'Inicio'], [b[0], RN_SEC[b[0]][1], rnNomTab(b[0])], null, [b[1], RN_SEC[b[1]][1], rnNomTab(b[1])], ['mas', 'menu', 'Más']];
+    return rnTitulo('Barra de abajo', { atras: 'Ajustes' }) + '<p class="rn-txt rn-pie-txt">Inicio, el «+» y Más van fijos. Elige las dos secciones de los lados. Lo demás se abre desde Más. Se guarda en este móvil.</p>' +
+      '<div class="rn-b5c rn-b5-vista">' + vista.map((x, i) => x === null ? '<span class="rn-plus5">' + rnIc('anadir', 24, 2.2) + '</span>' : '<span class="rn-tab' + (i === 1 || i === 3 ? ' rn-marca5' : '') + '"><i>' + rnIc(x[1], 22, 1.8) + '</i><span>' + x[2] + '</span></span>').join('') + '</div>' +
+      '<div class="rn-cd">' + op.map(k => { const on = b.indexOf(k) >= 0; return '<button class="rn-rw rn-k-' + RN_SEC[k][2] + '" data-a="rnBarraTog" data-id="' + k + '" role="checkbox" aria-checked="' + on + '">' + rnChip(RN_SEC[k][1], 30) + '<span class="rn-t" style="flex:1">' + RN_SEC[k][0] + '</span><span class="rn-ck5' + (on ? ' rn-on' : '') + '">' + rnTick + '</span></button>'; }).join('') + '</div>' +
+      '<p class="rn-txt rn-pie-txt" style="font-size:13px">Para elegir otra, quita antes una de las dos.</p>';
+  }
+};
+ACC.rnBarraTog = el => {
+  const k = el.dataset.id, g = locLeer().barra, b = (Array.isArray(g) ? g : rnBarra()).filter(RN_BARRA_OK).slice(0, 2), i = b.indexOf(k);
+  if (i >= 0) b.splice(i, 1);
+  else { if (b.length >= 2) return toast('Para elegir otra, quita antes una de las dos.'); b.push(k); }
+  locPoner({ barra: b });
+  RN_PILL_X = null; Nav.refrescar(true); Nav.barra();
+};
+
+/* ---- 52_rn_arranque.js ---- */
+/* ===================== 0.3.0 · ARRANQUE · opción A: «R◯nda» =====================
+   La palabra «Ronda» en Inter Display con el anillo de puntos en el sitio de la «o».
+   - Las letras van como trazos sacados de la fuente (medidas fijas, sin canvas y sin medir texto: error A4).
+     Así no depende de que la fuente haya cargado y la palabra queda siempre en el centro de la pantalla física.
+   - La primera vez, la larga: las bolas salen girando en el centro, laten, y el anillo se encoge hasta su sitio en la «o»
+     mientras aparecen R, n, d, a. Termina en «R◯nda». Las demás veces, la corta de 0,75 s.
+   - Con «Reducir movimiento», solo fundidos. */
+const RN_PAL_TRAZOS = ["<path transform=\"translate(0 0)\" d=\"M111 0H419V521H689C690 521 691 521 692 521L956 0H1286L987 579C1154 656 1253 804 1253 1001C1253 1301 1043 1490 707 1490H111ZM419 768V1234H688C851 1234 952 1143 952 1001C952 859 851 768 689 768Z\"/>","<path transform=\"translate(2470 0)\" d=\"M399 587C399 751 484 824 606 824C729 824 800 749 800 607V0H1094V661C1094 928 949 1078 724 1078C572 1078 465 1010 394 890V1056H104V0H399Z\"/>","<path transform=\"translate(3669 0)\" d=\"M515 -22C654 -22 767 39 828 162H829V0H1119V1490H825V910H824C756 1024 650 1078 513 1078C243 1078 58 853 58 529C58 198 239 -22 515 -22ZM591 218C448 218 355 331 355 529C355 727 448 840 591 840C740 840 839 717 839 529C839 340 740 218 591 218Z\"/>","<path transform=\"translate(4893 0)\" d=\"M427 -18C589 -18 680 46 736 149H740V0H1028V716C1028 942 862 1078 573 1078C283 1078 111 940 98 722H375C382 803 454 859 564 859C672 859 737 805 737 727V720C737 652 669 643 476 624C256 604 64 536 64 298C64 87 216 -18 427 -18ZM509 187C410 187 346 231 346 306C346 390 426 429 527 444C622 459 705 473 739 492V386C739 272 651 187 509 187Z\"/>"];
+const RN_PAL = { vx: 96, vy: -1505, vw: 5840, vh: 1550, ox: 1875.5, oy: -528, cx: 3016, cy: -733, rc: 431, rd: 105 };
+const RN_PAL_PX = 76;                                  /* tamaño de letra en pantalla */
+const rnPalAncho = () => (RN_PAL.vw / 2048 * RN_PAL_PX), rnPalAlto = () => (RN_PAL.vh / 2048 * RN_PAL_PX);
+const eCl = x => Math.max(0, Math.min(1, x)), eOC = x => 1 - Math.pow(1 - x, 3), eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eOB = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+/* Las bolas en un momento t. Devuelve también m (0: en el centro y grande; 1: en la «o») */
+function rnPalBolas(t, larga) {
+  const P0 = RN_PAL; let o = '', m = 1, rot;
+  if (larga) { m = eIO(eCl((t - 1.45) / 0.75)); rot = -110 * (1 - eOC(eCl((t - 0.15) / 1.5))); }
+  else rot = -90 * (1 - eOC(eCl(t / 0.52)));                     /* ficha 1: un cuarto de vuelta, 520 ms */
+  const k = (larga ? 2.3 : 1) + (1 - (larga ? 2.3 : 1)) * m;
+  const x = P0.cx + (P0.ox - P0.cx) * m, y = P0.cy + (P0.oy - P0.cy) * m;
+  for (let i = 0; i < 8; i++) {
+    const a = (i * 45 + rot) * Math.PI / 180;
+    if (larga) {
+      const t0 = 0.25 + i * 0.1, p = eCl((t - t0) / 0.55), e = eOB(p);
+      let s = eCl(p * 2.2) * (0.55 + 0.45 * Math.min(1.2, e));
+      const w = eCl((t - 1.15 - i * 0.04) / 0.4); s *= 1 + 0.18 * Math.sin(w * Math.PI) * (1 - m);
+      if (p > 0) o += '<circle cx="' + (P0.rc * e * Math.sin(a)).toFixed(1) + '" cy="' + (-P0.rc * e * Math.cos(a)).toFixed(1) + '" r="' + (P0.rd * Math.max(s, 0)).toFixed(1) + '" fill="' + RN_LOGO[i] + '"/>';
+    } else {
+      o += '<circle cx="' + (P0.rc * Math.sin(a)).toFixed(1) + '" cy="' + (-P0.rc * Math.cos(a)).toFixed(1) + '" r="' + P0.rd + '" fill="' + RN_LOGO[i] + '"/>';
+    }
+  }
+  return { g: '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + k.toFixed(4) + ')">' + o + '</g>', m: m };
+}
+/* La palabra entera, quieta (sirve también para la bienvenida y la captura) */
+function rnPalabra(px, cls) {
+  const P0 = RN_PAL, w = (P0.vw / 2048 * px).toFixed(1), h = (P0.vh / 2048 * px).toFixed(1);
+  return '<svg class="' + (cls || 'rn-pal') + '" width="' + w + '" height="' + h + '" viewBox="' + P0.vx + ' ' + P0.vy + ' ' + P0.vw + ' ' + P0.vh + '" role="img" aria-label="Ronda"><g class="rn-pal-l" transform="scale(1 -1)">' + RN_PAL_TRAZOS.join('') + '</g><g class="rn-pal-b">' + rnPalBolas(9, false).g + '</g></svg>';
+}
+function rnAnimarArranque(ar) {
+  return new Promise(ok => {
+    const larga = rnPrimeraVez();
+    try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
+    ar.classList.add('rn-anim', 'rn-anim5');
+    ar.innerHTML = rnAurora() + '<div class="rn-arr5">' + rnPalabra(RN_PAL_PX) + '</div>';
+    const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l path', ar);
+    let tA = 0;
+    const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9, false).g; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
+    if (REDUCIR) { svg.style.opacity = 0; requestAnimationFrame(() => { svg.style.transition = 'opacity .4s'; svg.style.opacity = 1; }); setTimeout(fin, 420); return; }
+    const FIN = larga ? 2.75 : 0.56;
+    letras.forEach(l => { l.style.opacity = 0; });
+    if (!larga) { svg.style.opacity = 0; }
+    const t0 = tA = performance.now();
+    const paso = now => {
+      const t = (now - t0) / 1000;
+      const b = rnPalBolas(t, larga); bolas.innerHTML = b.g;
+      if (larga) letras.forEach((l, i) => {
+        const d = 1.7 + (i ? 0.1 + i * 0.07 : 0), p = eOC(eCl((t - d) / 0.5));
+        l.style.opacity = p.toFixed(3); l.style.transform = 'translateY(' + (-400 * (1 - p)).toFixed(1) + 'px)';
+      });
+      else { const p = eCl(t / 0.11); svg.style.opacity = p.toFixed(3); if (t > 0.11) letras.forEach(l => { l.style.opacity = 1; }); else letras.forEach(l => { l.style.opacity = p.toFixed(3); }); }  /* ficha 1: aparece en 110 ms */
+      if (t < FIN) requestAnimationFrame(paso); else fin();
+    };
+    requestAnimationFrame(paso);
+  });
+}
+/* La bienvenida, con la misma palabra y el anillo en la «o» */
+P.bienvenida.html = () => '<div class="rn-bienv">' + rnPalabra(64, 'rn-pal rn-pal-bienv') + '<p class="rn-bienv-s">La casa, al día.</p></div>';
+/* Con el fondo de Inicio, como en el JPG */
+const _bfijo52 = P.bienvenida.fijo;
+P.bienvenida.fijo = p => rnAurora() + _bfijo52(p);
+P.anulado.fijo = (f => p => rnAurora() + f(p))(P.anulado.fijo);
+P.onb.fijo = (f => p => rnAurora() + f(p))(P.onb.fijo);
+
+/* ---------- Arranque de la app: ejemplo o casa ---------- */
+async function rnArrancar() {
+  const ar = $('#arranque');
+  aplicarTema();
+  const anim = ar ? rnAnimarArranque(ar) : Promise.resolve();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
+  let destino = 'inicio';
+  if (EN_CASA) {
+    const ok = await cargarCasa();
+    if (!ok) { try { localStorage.removeItem('rondaP-modo'); localStorage.removeItem('rondaP-casa'); } catch (e) { } location.reload(); return; }
+    let onb = ''; try { onb = localStorage.getItem('rondaP-onb-pend') || ''; } catch (e) { }
+    if (onb) destino = 'onb';
+  } else {
+    await cargarPrueba();
+    if (!rnModoElegido()) destino = 'bienvenida';
+  }
+  await anim;
+  Nav.raiz(destino, destino === 'onb' ? { paso: 0 } : {});
+  const capas = [$('#app'), $('#nav')].filter(Boolean);
+  capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya'))));
+  setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900);
+  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 260); }  /* ficha 1: se va en 190 ms (opacidad y escala 1,04) */
+}
+
+/* ---- 53_rn_inicio.js ---- */
+/* ===================== 0.3.0 · INICIO CON TODAS LAS TARJETAS =====================
+   - Las 56 tarjetas de la app de hoy, con el diseño nuevo. Cada una conserva su tamaño (S, media; L, entera).
+   - Las cinco que ya tenían JPG (Mis tareas, Menú de la semana, Añadir a la compra, Añadir gasto, Plantas) van con su pieza propia.
+     Las demás llevan la cabecera nueva (icono sin fondo en el color de su sección y título) y su contenido de hoy con el traje nuevo.
+   - «Tu inicio»: arrastrar, el ojo, la rueda, «Añadir tarjeta», «Plantillas», las ocultas y «Restablecer el orden original».
+   - El orden, las ocultas y los ajustes de cada tarjeta parten de lo que ya tenías en la hoja y luego se guardan SOLO en este móvil
+     (50_rn_casa.js: fijarInicio, fijarCfg). Cambiar Inicio aquí no cambia el Inicio de la app de hoy.
+   - Las tarjetas «de hoy» salen siempre, aunque no haya nada («Nada para hoy»). */
+const RN_SEC_DE = { Agenda: 'agenda', Tareas: 'tareas', Compra: 'compra', Gastos: 'gastos', 'Cuentas compartidas': 'gastos', 'Menú': 'menu', Notas: 'notas', Documentos: 'documentos', Plantas: 'plantas', 'Medicación': 'medicacion', Acuario: 'acuario', Coches: 'coche', Turnos: 'turnos', Tiempo: '', Varios: '' };
+const RN_W = { tareas: () => rnWTareas(), semana: () => rnWMenu(), rapido: () => rnWCompra(), gastoRapido: () => rnWGasto(), plantas: () => rnWPlantas() };
+const rnWSec = k => RN_SEC_DE[(W[k] || {}).sec] || '';
+const rnWColor = k => { const s = rnWSec(k); if (s) return RN_SEC[s][2]; return (W[k] || {}).sec === 'Tiempo' ? 'azul' : 'neutro'; };
+const rnWIcono = k => { const s = rnWSec(k); if (s) return RN_SEC[s][1]; return (W[k] || {}).sec === 'Tiempo' ? 'sol' : ({ accesos: 'menu', rutinas: 'repetir', ultCambios: 'reloj', resumen: 'nota' }[k] || 'inicio'); };
+/* La tarjeta de hoy dentro del marco nuevo: la cabecera de la app de hoy se cambia por la nueva */
+function rnWGenerica(k) {
+  const w = W[k]; let r;
+  try { r = w.f() || {}; } catch (e) { anotar('tarjeta ' + k, e); r = { h: lab(w.t) + '<p class="mu2">No se ha podido pintar</p>' }; }
+  let h = String(r.h || ''), der = '';
+  const m = h.match(/^\s*<div class="wl"><span>([\s\S]*?)<\/span>([\s\S]*?)<\/div>/);
+  let tit = w.t;
+  if (m) { tit = m[1] || w.t; der = m[2] || ''; h = h.slice(m[0].length); }
+  if (!h.replace(/<[^>]+>/g, '').trim() && !/<(svg|img|input|button)/.test(h)) h = '<p class="mu2">Nada por ahora</p>';
+  return '<div class="rn-cd rn-gl rn-wgen rn-k-' + rnWColor(k) + '">' + rnCab(rnWIcono(k), tit, der ? '<span class="rn-wder rn-viejo">' + der + '</span>' : '') + '<div class="rn-viejo rn-wv">' + h + '</div></div>';
+}
+function rnTarjeta(k, modo) {
+  const w = W[k]; if (!w) return '';
+  let h;
+  try { h = RN_W[k] ? RN_W[k]() : rnWGenerica(k); } catch (e) { anotar('tarjeta ' + k, e); h = rnCd(rnCab(rnWIcono(k), w.t) + '<p class="rn-n rn-vacio">No se ha podido pintar</p>'); }
+  const ctl = modo === 'edit' || modo === 'hid' ? '<span class="rn-wctl"><button class="rn-wbt" data-a="wOjo" data-k="' + k + '" aria-label="' + (modo === 'hid' ? 'Mostrar' : 'Ocultar') + ' «' + esc(w.t) + '»">' + rnIc(modo === 'hid' ? 'ojo-tachado' : 'ojo', 20, 2) + '</button><button class="rn-wbt" data-a="rnWRueda" data-k="' + k + '" aria-label="Ajustes de «' + esc(w.t) + '»">' + rnIc('ajustes', 20, 2) + '</button></span>' : '';
+  return '<div class="rn-wcard rn-wc-' + w.sz + (modo ? ' rn-w-' + modo : '') + '" data-w="' + k + '"' + (modo ? '' : ' data-lp="rnEditarInicio" data-a="rnWAbrir" data-k="' + k + '"') + '>' + h + ctl + '</div>';
+}
+ACC.rnWAbrir = (el, ev) => {
+  if (LP.cancelarClick) return;
+  if (ev && ev.target && ev.target.closest && ev.target.closest('input,textarea,select,label,a,button')) return;
+  ACC.wAbrir(el, ev);
+};
+
+/* Cabecera de Inicio con Dilo (opción A: micrófono en un círculo de cristal) */
+function rnCabInicio() {
+  const e = espacio(), ps = personas(), yoN = ((yo() || {}).nombre || '').split(' ')[0];
+  return '<div class="rn-icab"><div class="rn-marca"><span class="rn-logo">' + rnPuntos(24, .125) + '</span><b>' + esc(e.nombre || '') + '</b></div><div class="rn-avs">' + ps.map(p => rnAv(p, 32)).join('') +
+    '<button class="rn-rb rn-gl rn-dilo" data-a="rnDilo" aria-label="Dilo">' + rnIc('microfono', 20, 2) + '</button></div></div>' +
+    '<p class="rn-fecha">' + fechaLarga(new Date()) + '</p><h1 class="rn-saludo">' + saludo() + (yoN ? ', ' + esc(yoN) : '') + '</h1>';
+}
+
+/* Mis tareas, con sus ajustes (qué enseña, cuántas, con las atrasadas) */
+const rnCfgTareas = () => Object.assign({ q: 'mias', n: 3, atr: true }, cfgInicio().rnTareas || {});
+function rnWTareas() {
+  const c = rnCfgTareas(), h = hoyISO();
+  const l = lista('tareas').filter(c.q === 'todos' ? (() => true) : mias);
+  let pend = l.filter(t => !t.hecho).filter(t => c.q !== 'hoy' || (t.fecha && t.fecha <= h)).filter(t => c.atr || !(t.fecha && t.fecha < h))
+    .sort((a, b) => ((a.fecha || '9999') + (a.hora || '99')).localeCompare((b.fecha || '9999') + (b.hora || '99')) || (a.orden || 0) - (b.orden || 0));
+  const deHoy = l.filter(t => t.fecha === h), hechas = deHoy.filter(t => t.hecho).length;
+  const der = t => { if (t.fecha && t.fecha < h) return '<span class="rn-q rn-rojo">Atrasada</span>'; if (t.para === 'todos') return '<span class="rn-q">Todos</span>'; return t.fecha ? '<span class="rn-q">' + (t.fecha === h ? 'Hoy' : cuando(t.fecha)) + '</span>' : ''; };
+  const n = c.n || pend.length;
+  return rnCd('<div class="rn-wtop"><button class="rn-wtop-b" data-a="rnVerMias">' + rnAro(hechas, deHoy.length, 56, 8) + '<div class="rn-wnum"><b class="rn-num">' + hechas + ' de ' + deHoy.length + '</b><span>hechas hoy</span></div></button>' +
+    '<button class="rn-wlink" data-a="rnVerMias">' + (pend.length ? 'Ver las ' + pend.length : 'Tareas') + '</button></div>' +
+    (pend.length ? pend.slice(0, n).map(t => '<div class="rn-rw">' + rnCk(false, t.fecha && t.fecha < h, 'rnHacer', t.id) + '<button class="rn-rwt" data-a="rnVerTarea" data-id="' + t.id + '"><span class="rn-t">' + esc(t.titulo) + rnCandado(t) + '</span></button>' + der(t) + '</div>').join('')
+      : '<div class="rn-rw"><span class="rn-n rn-vacio">Nada para hoy</span></div>'), 'rn-k-lima rn-w-tareas');
+}
+
+/* ---------- La pantalla ---------- */
+const _ini47 = P.inicio;
+P.inicio = Object.assign({}, _ini47, {
+  rn: true, raiz: true, clase: 'con-barra',
+  html: p => {
+    try { cargarMes(new Date()); } catch (e) { }
+    if (p.editar) {
+      const vis = ordenInicio().map(k => rnTarjeta(k, 'edit')).join(''), hid = ocultasInicio().map(k => rnTarjeta(k, 'hid')).join('');
+      return '<div class="rn-tit rn-tit-in"><h1>Tu inicio</h1><div class="rn-titd"><button class="rn-btnp rn-btnc rn-btno rn-listo" data-a="inicioListo">Listo</button></div></div>' +
+        '<p class="rn-sub">Mantén pulsada una tarjeta y arrástrala. El ojo la oculta; la rueda, sus ajustes.</p>' +
+        '<div class="rn-mos rn-mos-ed" data-r="mos">' + vis + '</div>' +
+        '<div class="rn-dos"><button class="rn-btnp rn-btng rn-gl" data-a="ir" data-id="tarjetas">' + rnIc('anadir', 20, 2.2) + 'Añadir tarjeta</button><button class="rn-btnp rn-btng rn-gl" data-a="ir" data-id="plantillas">' + rnIc('duplicar', 20, 2) + 'Plantillas</button></div>' +
+        (hid ? '<h2 class="rn-gt">Ocultas</h2><p class="rn-txt rn-pie-txt">Toca el ojo para volver a mostrarlas.</p><div class="rn-mos rn-mos-hid">' + hid + '</div>' : '') +
+        '<button class="rn-version rn-verbv rn-rst" data-a="inicioRestablecer">Restablecer el orden original</button>';
+    }
+    let h = rnCabInicio();
+    if (esAdmin() && personas().length < 2) h += '<button class="rn-cd rn-gl rn-fila-g" data-a="ir" data-id="invitar">' + rnChip('invitar', 30) + '<span class="rn-fat"><b>Invita a los tuyos</b><span class="rn-n">Crea un código para que se unan</span></span>' + rnFle + '</button>';
+    if (esAdmin() && EN_CASA && (!S.cal || !S.cal.id)) h += '<button class="rn-cd rn-gl rn-fila-g" data-a="ir" data-id="avisos">' + rnChip('modulo-calendario', 30) + '<span class="rn-fat"><b>Elige vuestro calendario</b><span class="rn-n">Para la agenda y los avisos</span></span>' + rnFle + '</button>';
+    const ks = ordenInicio();
+    h += ks.length ? '<div class="rn-mos" data-r="mos">' + ks.map(k => rnTarjeta(k)).join('') + '</div>' : '<div class="rn-vac">' + rnIlu('todo-en-un-sitio') + '<p class="rn-txt">No tienes ninguna tarjeta. Toca «Personalizar» para elegirlas.</p></div>';
+    return h + '<button class="rn-version rn-verbv rn-pers" data-a="rnEditarInicio">' + rnIc('ordenar', 16, 2) + ' Personalizar inicio</button>';
+  },
+  fijo: () => rnAurora(),
+  montar(el, p) { P.inicio.tras(el, p); },
+  tras(el, p) {
+    p = p || {};
+    if (p.editar) rnArrastre(el, p);
+    const i = $('#wqN', el);
+    if (i) i.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); ACC.wqOk(); } });
+    const g = $('#grCon', el), m = $('#grImp', el);
+    if (m) m.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); if (g) g.focus(); } });
+    if (g) g.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); const b = $('[data-a="grOk"]', el); if (b) ACC.grOk(b); } });
+    /* Las tarjetas de hoy que tienen sus propios campos (nota rápida…) */
+    $$('.rn-wv input', el).forEach(x => x.addEventListener('keydown', ev => { if (ev.key === 'Enter') { const b = x.closest('.rn-wv').querySelector('[data-a]'); if (b && b.tagName === 'BUTTON') { ev.preventDefault(); b.click(); } } }));
+  }
+});
+P.inicio.rnPlus = _ini47.rnPlus;
+ACC.rnEditarInicio = () => { if (Nav.pila[0].id !== 'inicio') Nav.raiz('inicio'); const e = Nav.pila[0]; if (Nav.pila.length > 1) Nav.atras(Nav.pila.length - 1); e.params.editar = true; Nav.refrescar(true); $('.pgc', e.el).scrollTop = 0; };
+ACC.editarInicio = ACC.rnEditarInicio;
+ACC.inicioRestablecer = async () => { if (!await preguntar('¿Volver al orden original?', 'Se ponen las tarjetas de «Lo de hoy» en su orden. Solo en este móvil.', 'Restablecer')) return; fijarInicio(PLANTILLAS[0][3].slice(), []); Nav.refrescar(true); toast('Orden original'); };
+
+/* La rueda de cada tarjeta */
+ACC.rnWRueda = (el, ev) => {
+  if (ev) ev.stopPropagation();
+  const k = el.dataset.k, w = W[k]; if (!w) return;
+  const vis = ordenInicio().indexOf(k) >= 0, s = rnWSec(k);
+  let h = rnCabHoja(esc(w.t));
+  if (k === 'tareas') {
+    const c = rnCfgTareas(), qs = (campo, ops) => '<div class="rn-qcs">' + ops.map(o => '<button class="rn-qc' + (String(c[campo]) === String(o[0]) ? ' rn-on' : '') + '" data-a="rnWTCfg" data-c="' + campo + '" data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</div>';
+    h += '<p class="rn-et">Qué enseña</p>' + qs('q', [['mias', 'Mis tareas'], ['todos', 'De todos'], ['hoy', 'Solo hoy']]) + '<p class="rn-et">Cuántas</p>' + qs('n', [[3, '3'], [5, '5'], [0, 'Todas']]) +
+      '<div class="rn-cd" style="margin-top:12px"><div class="rn-rw"><span class="rn-t" style="flex:1">Con las atrasadas</span>' + rnSw(c.atr, 'rnWTAtr') + '</div></div>';
+  }
+  h += '<div class="rn-cd" style="margin-top:12px">' +
+    '<button class="rn-rw rn-fa" data-a="rnWOjoH" data-k="' + k + '"><span class="rn-chip">' + rnIc(vis ? 'ojo-tachado' : 'ojo', 24, 2) + '</span><span class="rn-t" style="flex:1">' + (vis ? 'Ocultar en Inicio' : 'Mostrar en Inicio') + '</span></button>' +
+    (s ? '<button class="rn-rw rn-fa" data-a="rnWIr" data-id="' + s + '"><span class="rn-chip">' + rnIc(RN_SEC[s][1], 24, 2) + '</span><span class="rn-t" style="flex:1">Abrir ' + esc(RN_SEC[s][0]) + '</span>' + rnFle + '</button>' : '') + '</div>' +
+    '<p class="rn-txt rn-pie-txt" style="font-size:12.5px">' + (w.sz === 'L' ? 'Tarjeta grande' : 'Tarjeta pequeña') + (w.desc ? ' · ' + esc(w.desc) : '') + '</p>' +
+    '<button class="rn-btnp rn-btno" data-a="cerrarHoja" style="margin-top:14px">Listo</button>';
+  abrirHoja(h, { clase: 'rn-k-' + rnWColor(k) });
+};
+ACC.rnWTCfg = el => { const c = rnCfgTareas(); c[el.dataset.c] = el.dataset.c === 'n' ? +el.dataset.v : el.dataset.v; fijarCfg({ rnTareas: c }); $$('[data-c="' + el.dataset.c + '"]', el.parentNode).forEach(b => b.classList.toggle('rn-on', b === el)); Nav.refrescar(true); };
+ACC.rnWTAtr = el => { const c = rnCfgTareas(); c.atr = !c.atr; fijarCfg({ rnTareas: c }); el.classList.toggle('rn-on', c.atr); el.setAttribute('aria-checked', c.atr); Nav.refrescar(true); };
+ACC.rnWOjoH = el => { cerrarHoja(); ACC.wOjo(el); };
+ACC.rnWIr = el => { cerrarHoja(); setTimeout(() => rnAbrir(el.dataset.id), 120); };
+
+/* ---------- Plantillas: cada una enseña sus tarjetas ---------- */
+P.plantillas = {
+  rn: true,
+  html: p => {
+    const act = JSON.stringify(ordenInicio());
+    return rnTitulo('Plantillas', { atras: 'Tu inicio', sub: 'Empieza con una y luego cámbiala a tu gusto' }) + PLANTILLAS.map(x => {
+      const sel = JSON.stringify(x[3].filter(k => W[k])) === act;
+      return '<div class="rn-cd rn-gl rn-plt"><div class="rn-plt-c"><div class="rn-fat"><b>' + esc(x[1]) + (sel ? ' <span class="rn-tg">La de ahora</span>' : '') + '</b><span class="rn-n">' + esc(x[2]) + '</span></div>' + (sel ? '' : '<button class="rn-qc" data-a="rnUsarPlantilla" data-v="' + x[0] + '">Usar</button>') + '</div>' +
+        '<div class="rn-plt-t">' + x[3].filter(k => W[k]).map(k => '<span class="rn-plt-chip rn-k-' + rnWColor(k) + (W[k].sz === 'L' ? ' rn-plt-l' : '') + '">' + rnIc(rnWIcono(k), 16, 2) + '<span>' + esc(W[k].t) + '</span></span>').join('') + '</div></div>';
+    }).join('') + '<p class="rn-txt rn-pie-txt" style="font-size:12.5px">Se guarda en este móvil. El Inicio de la app de hoy no cambia.</p>';
+  }
+};
+ACC.rnUsarPlantilla = el => {
+  const x = PLANTILLAS.find(y => y[0] === el.dataset.v) || PLANTILLAS[0];
+  fijarInicio(x[3].slice(), []);
+  try { localStorage.setItem('rondaP-inicio-elegido', '1'); } catch (e) { }
+  Nav.atras(); const e = Nav.pila[0]; if (e && e.id === 'inicio') { e.params.editar = true; Nav.refrescar(true); }
+  toast('Inicio «' + x[1] + '»');
+};
+ACC.usarPlantilla = () => ACC.rnUsarPlantilla({ dataset: { v: (Nav.actual().params || {}).sel || 'hoy' } });
+
+/* ---------- Añadir tarjeta: por secciones, con la muestra de cada una ---------- */
+P.tarjetas = {
+  rn: true,
+  html: () => rnTitulo('Añadir tarjeta', { atras: 'Tu inicio', sub: 'Elige de qué y luego cómo la quieres' }) + '<div class="rn-cd">' +
+    SECS.concat(['Turnos', 'Tiempo']).filter((s, i, a) => a.indexOf(s) === i && Object.keys(W).some(k => W[k].sec === s)).map(s => {
+      const ks = Object.keys(W).filter(k => W[k].sec === s), k0 = ks[0], dentro = ks.filter(k => ordenInicio().indexOf(k) >= 0).length;
+      return '<button class="rn-rw rn-fa rn-k-' + rnWColor(k0) + '" data-a="ir" data-id="tarjetasSec" data-sec="' + esc(s) + '"><span class="rn-chip rn-chip-c">' + rnIc(rnWIcono(k0), 24, 2) + '</span><span class="rn-fat"><span class="rn-t">' + esc(s) + '</span><span class="rn-n">' + ks.length + (ks.length === 1 ? ' tarjeta' : ' tarjetas') + (dentro ? ' · ' + dentro + ' en tu inicio' : '') + '</span></span>' + rnFle + '</button>';
+    }).join('') + '</div>'
+};
+P.tarjetasSec = {
+  rn: true,
+  html: p => {
+    const o = ordenInicio();
+    return rnTitulo(esc(p.sec), { atras: 'Añadir tarjeta' }) + '<div class="rn-mos rn-mos-muestra">' + Object.keys(W).filter(k => W[k].sec === p.sec).map(k => {
+      const dentro = o.indexOf(k) >= 0;
+      return '<div class="rn-muestra rn-wc-' + W[k].sz + '"><div class="rn-muestra-v" aria-hidden="true">' + rnTarjeta(k, 'muestra') + '</div><div class="rn-muestra-p"><span class="rn-fat"><span class="rn-t">' + esc(W[k].t) + '</span><span class="rn-n">' + (W[k].sz === 'L' ? 'Grande' : 'Pequeña') + (W[k].desc ? ' · ' + esc(W[k].desc) : '') + '</span></span>' +
+        (dentro ? '<span class="rn-tg">En tu inicio</span>' : '<button class="rn-qc rn-on" data-a="rnAnadirTarjeta" data-k="' + k + '">Añadir</button>') + '</div></div>';
+    }).join('') + '</div>';
+  }
+};
+ACC.rnAnadirTarjeta = el => { const k = el.dataset.k; fijarInicio(ordenInicio().concat([k]), ocultasInicio().filter(x => x !== k)); Nav.refrescar(true); toast('«' + W[k].t + '» añadida a tu inicio', 'Deshacer', () => { fijarInicio(ordenInicio().filter(x => x !== k), ocultasInicio()); Nav.refrescar(true); }, 'hecho'); };
+
+/* Arrastrar para ordenar (la lógica de la app de hoy, con clases propias: regla B de 03_ERRORES) */
+function rnArrastre(el, p) {
+  const cont = $('[data-r="mos"]', el); if (!cont) return;
+  let d = null, t = null, x0 = 0, y0 = 0;
+  const cancelar = () => { clearTimeout(t); t = null; };
+  cont.addEventListener('pointerdown', ev => {
+    const w = ev.target.closest('.rn-wcard'); if (!w || ev.target.closest('.rn-wctl')) return;
+    x0 = ev.clientX; y0 = ev.clientY; cancelar();
+    t = setTimeout(() => {
+      const r = w.getBoundingClientRect();
+      const ph = document.createElement('div'); ph.className = 'rn-hueco rn-wc-' + (w.classList.contains('rn-wc-L') ? 'L' : 'S'); ph.style.height = r.height + 'px';
+      w.parentNode.insertBefore(ph, w);
+      d = { w: w, ph: ph, dx: x0 - r.left, dy: y0 - r.top };
+      w.classList.add('rn-levantada'); w.style.width = r.width + 'px'; w.style.left = r.left + 'px'; w.style.top = r.top + 'px';
+      document.body.appendChild(w);
+      try { navigator.vibrate && navigator.vibrate(10); } catch (e) { }
+    }, 320);
+  });
+  const mover = ev => {
+    if (!d) { if (t && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 8) cancelar(); return; }
+    d.w.style.left = (ev.clientX - d.dx) + 'px'; d.w.style.top = (ev.clientY - d.dy) + 'px';
+    const otro = $$('.rn-wcard', cont).find(o => { const r = o.getBoundingClientRect(); return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom; });
+    if (otro) { const r = otro.getBoundingClientRect(); const antes = otro.classList.contains('rn-wc-L') ? ev.clientY < r.top + r.height / 2 : ev.clientX < r.left + r.width / 2; cont.insertBefore(d.ph, antes ? otro : otro.nextSibling); }
+    /* Si se arrastra al borde, la página se desplaza sola. */
+    const pgc = cont.closest('.pgc'), pr = pgc.getBoundingClientRect();
+    if (ev.clientY < pr.top + 60) pgc.scrollTop -= 12; else if (ev.clientY > pr.bottom - 60) pgc.scrollTop += 12;
+  };
+  const soltar = () => {
+    cancelar();
+    if (!d) return;
+    const w = d.w; w.classList.remove('rn-levantada'); ['width', 'left', 'top', 'height', 'transform'].forEach(x => w.style.removeProperty(x));
+    cont.insertBefore(w, d.ph); d.ph.remove(); d = null;
+    const orden = $$('.rn-wcard', cont).map(x => x.dataset.w).filter(Boolean);
+    fijarInicio(orden, ocultasInicio());
+    LP.cancelarClick = true; setTimeout(() => { LP.cancelarClick = false; }, 400);
+  };
+  const cancela = () => { if (d) soltar(); else cancelar(); }, tm = ev => { if (d) ev.preventDefault(); };
+  if (ARR.quitar) ARR.quitar();
+  document.addEventListener('pointermove', mover);
+  document.addEventListener('pointerup', soltar);
+  document.addEventListener('pointercancel', cancela);
+  document.addEventListener('touchmove', tm, { passive: false });
+  ARR.quitar = () => { document.removeEventListener('pointermove', mover); document.removeEventListener('pointerup', soltar); document.removeEventListener('pointercancel', cancela); document.removeEventListener('touchmove', tm); ARR.quitar = null; };
+}
+
+/* ---- 54_rn_pantallas.js ---- */
+/* ===================== 0.3.0 · TODAS LAS PANTALLAS CON EL DISEÑO NUEVO =====================
+   Las pantallas de dentro que todavía usan la estructura de hoy (formularios, detalles, ajustes…) salen con las piezas nuevas:
+   - Arriba, la flecha con el nombre de la pantalla de la que vienes y el título grande (como en los JPG), no la barra fina de antes.
+   - Las personas, con su inicial en su color (o su foto), no la silueta de antes.
+   - Las ilustraciones, en su versión oscura cuando toca.
+   - En las neutras (Ajustes y lo de dentro), fondo claro liso y tarjetas blancas planas; en las de una sección, su color.
+   El resto del traje está en diseno030.css (.rn-viejo). */
+
+/* ---------- Las personas, siempre con el avatar nuevo ---------- */
+function av(p, s) { return rnAv(p && (p.nombre || p.color) ? p : { nombre: (p && p.nombre) || '?', color: (p && p.color) || '#9FB0B8' }, s || 44); }
+
+/* ---------- Ilustraciones: la oscura en modo oscuro, en todas partes ---------- */
+(function () {
+  const claras = Object.assign({}, ILUS);
+  Object.keys(claras).forEach(k => Object.defineProperty(ILUS, k, { get: () => (rnOscuro() && ILUS_OSC[k]) || claras[k], configurable: true, enumerable: true }));
+})();
+
+/* ---------- Cabecera nueva para las pantallas de hoy ---------- */
+function rnNombreAtras(e) {
+  const i = Nav.pila.indexOf(e), prev = i > 0 ? Nav.pila[i - 1] : i < 0 ? Nav.actual() : null;
+  if (!prev) return 'Atrás';
+  let t = '';
+  try { const h = prev.el && prev.el.querySelector('.rn-tit h1, .hd h1'); t = h ? h.textContent.trim() : ''; } catch (x) { }
+  if (!t) t = prev.id === 'inicio' ? 'Inicio' : RN_SEC[prev.id] ? RN_SEC[prev.id][0] : 'Atrás';
+  return t.length > 20 ? 'Atrás' : t;
+}
+const _cont54 = Nav.contenido;
+Nav.contenido = function (e) {
+  const h = _cont54.call(this, e);
+  if (P[e.id].rn || String(h).indexOf('class="top"') < 0) return h;
+  try {
+    const t = document.createElement('template'); t.innerHTML = h;
+    const tp = t.content.querySelector('.top'); if (!tp) return h;
+    const RN_TIT = { estadisticas: 'Estadísticas', mas: 'Más', comprobaciones: 'Comprobaciones', acerca: 'Acerca de Ronda' };
+    const b = tp.querySelector(':scope > b'), tit = (b ? b.textContent.trim() : '') || RN_TIT[e.id] || '';
+    const rt = tp.querySelector('.rt'), der = rt ? rt.innerHTML.trim() : '';
+    const hayHd = !!t.content.querySelector('.hd h1');
+    const atras = rnNombreAtras(e);
+    const n = document.createElement('template');
+    n.innerHTML = hayHd || !tit
+      ? '<div class="rn-atras"><button class="rn-atrasb" data-a="atras" aria-label="Volver a ' + esc(atras) + '">' + rnIc('atras', 22, 2) + '<span>' + esc(atras) + '</span></button>' + (der ? '<div class="rn-titd rn-viejo-der">' + der + '</div>' : '') + '</div>'
+      : rnTitulo(esc(tit), { atras: esc(atras), der: der ? '<span class="rn-viejo-der">' + der + '</span>' : '' });
+    tp.replaceWith(n.content);
+    return t.innerHTML;
+  } catch (x) { anotar('cabecera ' + e.id, x); return h; }
+};
+
+
+/* ---- 55_rn_anim.js ---- */
+/* ===================== 0.3.0 · LAS ANIMACIONES (ronda_animaciones_ficha.md) =====================
+   Curvas: entrar cubic-bezier(.2,0,0,1) · muelle cubic-bezier(.2,.9,.25,1.04) · salir cubic-bezier(.4,0,1,1).
+   Lo que se va es más rápido que lo que llega. Solo transform y opacity (salvo excepciones cortas).
+   El cambio de claro a oscuro no se anima. Con «Reducir movimiento», fundidos de 150 ms. Las tiempos están en diseno030.css. */
+
+/* ---------- Claro ↔ oscuro: sin animación ---------- */
+const _tema55 = aplicarTema;
+aplicarTema = function () {
+  const r = document.documentElement; r.classList.add('rn-sin-trans');
+  try { _tema55.apply(this, arguments); } finally { requestAnimationFrame(() => requestAnimationFrame(() => r.classList.remove('rn-sin-trans'))); }
+};
+
+/* ---------- Avisos: entran con muelle; 5 s con botón, 2,5 s solo texto; el de error se queda hasta que se toca ---------- */
+let RN_AV_T = null;
+function toast(msg, accion, fn, icono) {
+  const capa = $('#capa'); if (!capa) return;
+  $$('.rn-aviso', capa).forEach(t => { t.classList.remove('rn-ver'); t.classList.add('rn-sale'); setTimeout(() => t.remove(), 240); });
+  const error = icono === 'aviso';
+  const t = document.createElement('div');
+  t.className = 'rn-aviso' + (error ? ' rn-mal' : '');
+  t.setAttribute('role', error ? 'alert' : 'status');
+  t.innerHTML = (icono ? '<span class="rn-avi">' + (icono === 'hecho' ? rnTick : rnIc(icono, 20, 2.2)) + '</span>' : '') + '<span class="rn-avt">' + esc(msg) + '</span>' + (accion ? '<button class="rn-ava">' + esc(accion) + '</button>' : error ? '<button class="rn-ava rn-avx" aria-label="Cerrar">' + rnIc('cerrar', 18, 2.2) + '</button>' : '');
+  capa.appendChild(t);
+  const quitar = () => { clearTimeout(RN_AV_T); t.classList.remove('rn-ver'); t.classList.add('rn-sale'); setTimeout(() => t.remove(), 240); };
+  if (accion) $('button', t).addEventListener('click', () => { quitar(); fn(); });
+  else if (error) t.addEventListener('click', quitar);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('rn-ver')));
+  clearTimeout(RN_AV_T);
+  if (!error) RN_AV_T = setTimeout(quitar, accion ? 5000 : 2500);
+}
+
+/* ---------- Al llegar a una sección (desde la barra o Más): los bloques entran escalonados. No al volver ni al refrescar. ---------- */
+const _raiz55 = Nav.raiz;
+Nav.raiz = function (id, params) {
+  const r = _raiz55.call(this, id, params);
+  const e = this.pila[0];
+  if (e && e.el && !REDUCIR) {
+    e.el.classList.add('rn-llega');
+    $$('.pgc > *', e.el).slice(0, 6).forEach((b, i) => b.style.setProperty('--rn-i', i));
+    setTimeout(() => { if (e.el) e.el.classList.remove('rn-llega'); }, 1300);
+  }
+  return r;
+};
+
+/* ---------- Marcar: la casilla salta, la marca se dibuja, el texto se tacha; la fila se recoge pasados 700 ms ---------- */
+document.addEventListener('click', ev => {
+  const c = ev.target.closest && ev.target.closest('.rn-ck');
+  if (!c) return;
+  const f = c.closest('.rn-it, .rn-rw');
+  c.classList.add('rn-recien'); if (f) f.classList.add('rn-recien');
+  setTimeout(() => { c.classList.remove('rn-recien'); if (f) f.classList.remove('rn-recien'); }, 1200);
+}, true);
+
+/* ---------- Mantener pulsado «Más»: la pestaña se encoge poco a poco mientras espera ---------- */
+document.addEventListener('touchstart', ev => { const m = ev.target.closest && ev.target.closest('.rn-b5 .rn-tab[data-id="mas"]'); if (m) m.classList.add('rn-espera'); }, { passive: true });
+['touchend', 'touchcancel'].forEach(t => document.addEventListener(t, () => $$('.rn-tab.rn-espera').forEach(x => x.classList.remove('rn-espera')), { passive: true }));
+
+/* ---------- El «+» gira a «×» mientras está abierta la hoja que ha abierto ---------- */
+const _plus55 = ACC.rnPlus;
+ACC.rnPlus = el => {
+  const r = _plus55(el);
+  setTimeout(() => { if (hojaAbierta) { const p = $('.rn-plus5'); if (p) { p.classList.add('rn-x45'); const o = hojaAbierta.alCerrar; hojaAbierta.alCerrar = () => { p.classList.remove('rn-x45'); if (o) o(); }; } } }, 30);
+  return r;
+};
+
+/* ---------- Filtros de Tareas: la píldora elegida se desliza ---------- */
+function rnPildoraFiltro(cont) {
+  const on = cont && $('.rn-on', cont); if (!on) return;
+  let p = $('.rn-flp', cont); const nueva = !p;
+  if (!p) { p = document.createElement('i'); p.className = 'rn-flp'; cont.insertBefore(p, cont.firstChild); }
+  const ant = cont.dataset.x ? JSON.parse(cont.dataset.x) : null, x = [on.offsetLeft, on.offsetWidth];
+  if (ant && !REDUCIR && (ant[0] !== x[0] || ant[1] !== x[1])) { p.style.transition = 'none'; p.style.transform = 'translateX(' + ant[0] + 'px)'; p.style.width = ant[1] + 'px'; p.getBoundingClientRect(); p.style.transition = ''; }
+  p.style.transform = 'translateX(' + x[0] + 'px)'; p.style.width = x[1] + 'px';
+  cont.dataset.x = JSON.stringify(x); cont.classList.add('rn-fl-p');
+}
+let RN_FL_X = null;
+const _tras55 = P.tareas.tras;
+P.tareas.tras = function (el, p) {
+  if (_tras55) _tras55.call(this, el, p);
+  const c = $('.rn-fl', el); if (!c) return;
+  if (RN_FL_X) c.dataset.x = RN_FL_X;
+  rnPildoraFiltro(c); RN_FL_X = c.dataset.x;
+};
+if (!P.tareas.montar) P.tareas.montar = function (el, p) { P.tareas.tras(el, p); };
+
+/* ---------- Código de 4 cifras: cada punto salta al llenarse; si está mal, la fila tiembla ---------- */
+/* Al refrescar tras un código mal puesto, la fila de puntos tiembla (el mensaje «Código incorrecto» lo pone 11_documentos.js) */
+const _cont55 = Nav.contenido;
+Nav.contenido = function (e) {
+  let h = _cont55.call(this, e);
+  if (/Código incorrecto/.test(h) && h.indexOf('class="pin"') >= 0) h = h.replace('class="pin"', 'class="pin rn-tiembla"');
+  return h;
+};
+
+/* ---------- Volver: lo mismo al revés, más rápido (240 ms, ease-out) ---------- */
+const _atras55 = Nav.atras;
+Nav.atras = function (n) {
+  const ps = this.pila.slice(-((n || 1) + 1));
+  ps.forEach(p => p.el && p.el.classList.add('rn-volviendo'));
+  const r = _atras55.apply(this, arguments);
+  setTimeout(() => ps.forEach(p => p.el && p.el.classList.remove('rn-volviendo')), 400);
+  return r;
+};
+
+/* ---------- Dilo (el panel de la app de hoy): con el traje nuevo, en la capa de arriba ---------- */
+const _diloAbrir55 = Dilo.abrir;
+Dilo.abrir = function (modo) {
+  const r = _diloAbrir55.call(this, modo);
+  const c = document.getElementById('rn-capas');
+  if (c && this.el) { c.appendChild(this.velo); c.appendChild(this.el); this.el.classList.add('rn-dilo-p'); }
+  return r;
+};
+/* Al elegir una sección en la hoja, la celda se resalta 160 ms y luego la hoja baja */
+const _secElegir55 = ACC.rnSecElegir;
+ACC.rnSecElegir = el => { if (el && el.classList) el.classList.add('rn-sob'); setTimeout(() => _secElegir55(el), REDUCIR ? 0 : 160); };
+/* Mientras algo se mueve, sin desenfoque (el cristal es caro) */
+function rnMoviendo(ms) { const r = document.documentElement; r.classList.add('rn-moviendo'); clearTimeout(rnMoviendo.t); rnMoviendo.t = setTimeout(() => r.classList.remove('rn-moviendo'), ms || 450); }
+['ir', 'atras', 'raiz'].forEach(k => { const f = Nav[k]; Nav[k] = function () { rnMoviendo(); return f.apply(this, arguments); }; });
+const _hoja55 = abrirHoja;
+abrirHoja = function () { rnMoviendo(480); return _hoja55.apply(this, arguments); };
+
+/* ---- 59_rn_fin.js ---- */
+/* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */
+window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, MODO, EN_CASA, RN_PAL, Sync, Cal, rnAurora, W, PLANTILLAS, fijarInicio, ordenInicio, rnBarra, locLeer, actLoc, rnPalabra, apiReal, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
 rnArrancar().catch(e => {
   anotar('arranque', e);
   const a = $('#arranque'); if (a) a.remove();

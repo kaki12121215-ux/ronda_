@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Lista de la compra</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1417" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<style>
+/* Ronda · prueba 0.3.0 · lista compartida con el diseño nuevo. Hace lo mismo que la de hoy (lista-ver y lista-marcar), con el mismo enlace. */
+@font-face{font-family:Inter;font-weight:500;src:url('fonts/inter-500.woff') format('woff')}
+@font-face{font-family:Inter;font-weight:600;src:url('fonts/inter-600.woff') format('woff')}
+@font-face{font-family:'Inter Display';font-weight:700;src:url('fonts/inter-display-700.woff') format('woff')}
+:root{--bg:#FFFFFF;--tarj:#FFFFFF;--txt:#2B3A42;--txt2:#55646C;--raya:rgba(43,58,66,.12);--b:#EAC152;--f:#F1DDAE;--fo:#F9F3E4;--t:#392C0C;--ico:#AF8825;--err:#B5371F;
+  --g0:#EAC152;--g1:#E8AE45;--g2:#F2DE97;--sombra:0 1px 2px rgba(27,38,44,.05),0 8px 22px rgba(27,38,44,.07)}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1417;--tarj:#1B2227;--txt:#EEF2F4;--txt2:#A9B4BA;--raya:rgba(255,255,255,.10);--b:#C9A445;--f:#4A3E1E;--fo:#2A2416;--t:#F6E7BF;--ico:#E3C46E;--err:#FF9580;
+  --g0:#5A4920;--g1:#463A1C;--g2:#2A2416;--sombra:inset 0 0 0 1px rgba(255,255,255,.07),0 10px 28px rgba(0,0,0,.4)}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;font-weight:500;max-width:560px;margin:0 auto;min-height:100vh;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.cab{background:linear-gradient(180deg,var(--g0) 0%,var(--g1) 45%,var(--g2) 78%,var(--bg) 100%);padding:max(env(safe-area-inset-top),22px) 20px 30px}
+.saf{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12px;color:var(--t);background:rgba(255,255,255,.55);border-radius:99px;padding:5px 11px 5px 9px}
+@media (prefers-color-scheme:dark){.saf{background:rgba(0,0,0,.25)}}
+.saf i{width:7px;height:7px;border-radius:50%;background:#2E8B57}
+.eye{color:var(--t);font-weight:600;font-size:13px;margin-top:16px;opacity:.8}
+h1{font-family:'Inter Display',Inter,system-ui,sans-serif;font-size:36.5px;line-height:1.05;font-weight:700;color:var(--t);margin:3px 0 6px;letter-spacing:-.01em}
+.sub{color:var(--t);font-weight:500;font-size:13px;opacity:.85}
+#c{padding:0 16px 40px}
+.card{background:var(--tarj);border-radius:22px;box-shadow:var(--sombra);overflow:hidden;margin-top:-8px}
+.row{display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--raya);width:100%;border-left:0;border-right:0;border-top:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.row:last-child{border-bottom:0}
+.ck{width:24px;height:24px;border-radius:50%;border:2px solid var(--b);flex:none;display:flex;align-items:center;justify-content:center;transition:background .18s,border-color .18s,transform .18s}
+.on .ck{background:var(--b);border-color:transparent;transform:scale(1.04)}
+.ck svg{opacity:0;transition:opacity .15s}.on .ck svg{opacity:1}
+.row b{font-size:14px;font-weight:600;flex:1;transition:color .2s}.row small{color:var(--txt2);font-size:12.5px;font-weight:500}
+.on b{text-decoration:line-through;color:var(--txt2)}
+.vacio,.err{text-align:center;color:var(--txt2);font-size:14px;font-weight:500;margin-top:28px;line-height:1.45;padding:0 20px}
+.err{color:var(--err)}
+.pie{text-align:center;color:var(--txt2);font-size:12px;margin-top:16px}
+.ilu{display:flex;justify-content:center;margin-top:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="cab"><div class="saf"><i></i>Enlace de Ronda · solo esta lista</div><p class="eye" id="eye">&nbsp;</p><h1 id="tit">Lista de la compra</h1><p class="sub" id="sub">Cargando…</p></div>
+<div id="c"></div>
+<script>
+/* Lista de la compra compartida: la ve quien tenga el enlace, sin cuenta. Se actualiza sola cada 10 s. Mismas llamadas que la de hoy. */
+(function () {
+  'use strict';
+  var h = {}; location.hash.slice(1).split('&').forEach(function (x) { var p = x.split('='); if (p[0]) h[p[0]] = decodeURIComponent(p[1] || ''); });
+  var url = /^https?:/.test(h.u || '') ? h.u : 'https://script.google.com/macros/s/' + (h.u || '') + '/exec';
+  var c = h.c || '', datos = null, ocupado = false;
+  var $c = document.getElementById('c'), $t = document.getElementById('tit'), $s = document.getElementById('sub'), $e = document.getElementById('eye');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); };
+  var tick = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 6.4l2.5 2.5 4.8-5.2"/></svg>';
+  /* Ilustración «nada por comprar»: carro vacío, con la paleta nueva */
+  var vacio = '<div class="ilu"><svg width="150" height="110" viewBox="0 0 150 110" aria-hidden="true"><ellipse cx="75" cy="98" rx="52" ry="7" fill="var(--fo)"/><path d="M30 26h14l11 46h52l10-34H50" fill="none" stroke="var(--b)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="60" cy="86" r="7" fill="var(--b)"/><circle cx="100" cy="86" r="7" fill="var(--b)"/><path d="M62 50h40" stroke="var(--f)" stroke-width="5" stroke-linecap="round"/></svg></div>';
+  function llamar(cuerpo) {
+    return fetch(url, { method: 'POST', body: JSON.stringify(cuerpo), redirect: 'follow', cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var j; try { j = JSON.parse(t); } catch (e) { throw new Error('No se puede abrir la lista ahora mismo.'); }
+      if (!j.ok) throw new Error(j.error || 'No se puede abrir la lista.');
+      return j;
+    });
+  }
+  function pintar() {
+    if (!datos) return;
+    var pend = datos.items.filter(function (x) { return !x.hecho; }).length;
+    document.title = datos.lista + ' · lista de la compra';
+    $e.textContent = 'Lista de ' + (datos.espacio || 'casa'); $t.textContent = datos.lista;
+    $s.textContent = (pend ? pend + ' por comprar' : 'Nada por comprar') + ' · actualizada hace un momento';
+    $c.innerHTML = (datos.items.length ? '<div class="card">' + datos.items.map(function (x) { return '<button class="row' + (x.hecho ? ' on' : '') + '" data-id="' + esc(x.id) + '"' + (datos.marcar ? '' : ' disabled') + '><span class="ck">' + tick + '</span><b>' + esc(x.nombre) + '</b>' + (x.cantidad ? '<small>' + esc(x.cantidad) + '</small>' : '') + '</button>'; }).join('') + '</div>' : vacio + '<p class="vacio">No falta nada.</p>') +
+      '<p class="pie">' + (datos.marcar ? 'Toca un producto cuando lo metas en el carro.' : 'Solo se puede ver.') + '</p>';
+  }
+  function cargar() {
+    if (ocupado) return;
+    llamar({ a: 'lista-ver', c: c }).then(function (j) { datos = j; pintar(); }).catch(function (e) { if (!datos) { $s.textContent = ''; $c.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; } });
+  }
+  $c.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('.row'); if (!b || !datos || !datos.marcar) return;
+    var x = datos.items.filter(function (y) { return y.id === b.dataset.id; })[0]; if (!x) return;
+    x.hecho = !x.hecho; pintar(); ocupado = true;
+    llamar({ a: 'lista-marcar', c: c, id: x.id, hecho: x.hecho }).then(function (j) { datos = j; }).catch(function (e) { x.hecho = !x.hecho; setTimeout(function () { var p = document.querySelector('.pie'); if (p) { p.textContent = e.message; p.style.color = 'var(--err)'; } }, 30); }).then(function () { ocupado = false; pintar(); });
+  });
+  document.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
+  if (!c || !h.u) { $s.textContent = ''; $c.innerHTML = '<p class="err">Este enlace está incompleto. Pide que te lo vuelvan a mandar.</p>'; return; }
+  cargar();
+  setInterval(function () { if (!document.hidden) cargar(); }, 10000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) cargar(); });
+})();
+</script>
+</body>
+</html>

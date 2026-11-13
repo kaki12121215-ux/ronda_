@@ -32,13 +32,27 @@ function registrarActividad(col, id, campos, previo) {
   if (acc !== 'n' && acc !== 'b' && acc !== 'r') {
     const ant = {}, nue = {};
     ks.forEach(k => { if (CAMPOS_MUDOS.indexOf(k) >= 0) return; ant[k] = antes && antes[k] !== undefined ? antes[k] : null; nue[k] = campos[k]; });
-    const prev = S.recs.actividad && S.recs.actividad[aid] && S.recs.actividad[aid].f;
+    const prev = actLoc(aid);
     r.ant = Object.assign({}, ant, prev && prev.ant || {});
     r.nue = Object.assign({}, prev && prev.nue || {}, nue);
     if (JSON.stringify(r.ant).length + JSON.stringify(r.nue).length > 6000) { delete r.ant; delete r.nue; }
   }
+  /* 0.3.0: «cómo estaba» y «cómo quedó» se guardan SOLO en este móvil. A la hoja va la línea con los mismos campos que hoy. */
+  if (r.ant) actLocPoner(aid, { ant: r.ant, nue: r.nue });
+  delete r.ant; delete r.nue; delete r.desh;
   _cambiarBase('actividad', aid, r);
 }
+/* Lo que la actividad guarda solo en el móvil (por modo): { aid: { ant, nue, desh } } */
+const ACT_K = 'rondaP-act-' + MODO;
+let ACT_LOC = null;
+function actLocTodo() { if (!ACT_LOC) { try { ACT_LOC = JSON.parse(localStorage.getItem(ACT_K) || '{}') || {}; } catch (e) { ACT_LOC = {}; } } return ACT_LOC; }
+function actLoc(aid) { return actLocTodo()[aid] || null; }
+function actLocPoner(aid, o) {
+  const t = actLocTodo(); t[aid] = Object.assign({}, t[aid] || {}, o, { t: Date.now() });
+  const ks = Object.keys(t); if (ks.length > 400) ks.sort((a, b) => (t[a].t || 0) - (t[b].t || 0)).slice(0, ks.length - 400).forEach(k => delete t[k]);
+  try { localStorage.setItem(ACT_K, JSON.stringify(t)); } catch (e) { anotar('actividad local', e); }
+}
+const actConLoc = a => a ? Object.assign({}, a, actLoc(a.id) || {}) : a;
 /* Qué hace «Deshacer» y «Rehacer» en cada línea */
 function rnPasoActividad(a, deshacer) {
   if (a.acc === 'n' || a.acc === 'r') return { _b: deshacer ? 1 : 0 };
@@ -46,13 +60,13 @@ function rnPasoActividad(a, deshacer) {
   if (deshacer ? a.ant : a.nue) return Object.assign({}, deshacer ? a.ant : a.nue);
   return null;
 }
-function rnSePuedeDeshacer(a) { return !!(S.recs[a.col] && S.recs[a.col][a.ref] && rnPasoActividad(a, true)); }
+function rnSePuedeDeshacer(a) { a = actConLoc(a); return !!(S.recs[a.col] && S.recs[a.col][a.ref] && rnPasoActividad(a, true)); }
 function rnHacerActividad(aid, deshacer) {
-  const a = dato('actividad', aid); if (!a) return;
+  const a = actConLoc(dato('actividad', aid)); if (!a) return;
   const c = rnPasoActividad(a, deshacer); if (!c) return toast('Este cambio no se puede ' + (deshacer ? 'deshacer' : 'rehacer') + '.');
   /* Sin apuntarlo como un cambio nuevo: la misma línea pasa a «deshecho» */
   _cambiarBase(a.col, a.ref, c);
-  _cambiarBase('actividad', aid, { desh: deshacer ? 1 : 0 });
+  actLocPoner(aid, { desh: deshacer ? 1 : 0 });
   Nav.refrescar(true);
   toast(deshacer ? 'Deshecho: «' + (a.txt || COLNOM[a.col]) + '»' : 'Rehecho: «' + (a.txt || COLNOM[a.col]) + '»', deshacer ? 'Rehacer' : 'Deshacer', () => rnHacerActividad(aid, !deshacer), 'deshacer');
 }
@@ -62,7 +76,7 @@ ACC.actRecuperar = el => { const a = lista('actividad').find(x => x.ref === el.d
 P.actividad = {
   html: p => {
     p.q = p.q || ''; p.s = p.s || '';
-    let l = actividades(30);
+    let l = actividades(30).map(actConLoc);
     if (p.q) l = l.filter(a => a.q === p.q);
     if (p.s) l = l.filter(a => COLNOM[a.col] === p.s);
     const secs = []; actividades(30).forEach(a => { const s = COLNOM[a.col]; if (s && secs.indexOf(s) < 0) secs.push(s); });

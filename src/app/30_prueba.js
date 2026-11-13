@@ -4,7 +4,7 @@
      nombres de almacenamiento («ronda_prueba», «rondaP-…»): nunca lee ni pisa los datos de la app real.
    - Los datos de ejemplo se crean la primera vez, con fechas relativas al día en que se abre. */
 const PRUEBA = true;
-const DATOS_V = 4;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
+const DATOS_V = 5;                       /* si cambia, se vuelven a crear los datos de ejemplo (0.1.1: 2) */
 let RN_CARGADO = false;                  /* hasta que no están los datos, no se guarda nada */
 const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids largos (ver J en 03_ERRORES) */
 
@@ -13,7 +13,9 @@ const PI = 'persona-ina-0000000001', PR = 'persona-ru-00000000002';   /* ids lar
    Lo demás (invitar, copias, tarjetas…) responde que en la prueba no hay conexión. */
 const RN_PARTES = {};
 const rnEv = () => lista('eventos').map(e => ({ id: e.id, titulo: e.titulo, inicio: e.inicio, fin: e.fin, todoDia: !!e.todoDia, lugar: e.lugar || '', notas: e.notas || '', tipo: e.tipo || 'recordatorio', quien: e.quien || '', aviso: e.aviso === undefined ? '' : e.aviso, ronda: e.ronda || '' }));
-async function api(a, x) {
+/* 0.3.0: en «casa» va al script de verdad (el de 01_base.js, sin tocar); en «ejemplo», a este de mentira */
+function api(a, x, o) { return EN_CASA ? apiReal(a, x, o) : apiEjemplo(a, x); }
+async function apiEjemplo(a, x) {
   x = x || {};
   await espera(60);
   const ok = o => Object.assign({ ok: true, sv: 'prueba' }, o || {});
@@ -47,11 +49,13 @@ async function api(a, x) {
   }
   throw ErrR('prueba', 'En la prueba no hay conexión con Google.');
 }
-Sync.ya = async () => { S.cola = {}; S.red.ok = true; S.red.error = null; S.red.ultimo = Date.now(); };
-Sync.pronto = () => { setTimeout(() => { S.cola = {}; }, 0); };
-Sync.programar = () => { };
-Cal.pronto = () => { };
-Cal.ya = async () => { };
+if (!EN_CASA) {
+  Sync.ya = async () => { S.cola = {}; S.red.ok = true; S.red.error = null; S.red.ultimo = Date.now(); };
+  Sync.pronto = () => { setTimeout(() => { S.cola = {}; }, 0); };
+  Sync.programar = () => { };
+  Cal.pronto = () => { };
+  Cal.ya = async () => { };
+}
 
 /* ---------- Generar los datos de ejemplo ---------- */
 function crearEjemplo() {
@@ -63,7 +67,7 @@ function crearEjemplo() {
   const dom = d(dsem === 7 ? 7 : 7 - dsem), lunPasado = d(dsem === 1 ? -7 : 1 - dsem), lunSig = d(8 - dsem);
 
   pon('espacio', 'espacio', { nombre: 'Nuestra casa', tipo: 'hogar', color: COL[4] });
-  pon('personas', PI, { nombre: 'Iña', color: COL[0], alta: 1, barra: ['tareas', 'compra', 'menu'] });
+  pon('personas', PI, { nombre: 'Iña', color: COL[0], alta: 1, barra: ['tareas', 'compra', 'menu'], inicio: ['tareas', 'semana', 'rapido', 'gastoRapido', 'plantas'], inicioOcultas: ['hoy', 'proximos'] });
   pon('personas', PR, { nombre: 'Ru', color: COL[5], alta: 2, barra: ['tareas', 'compra', 'menu'] });
 
   /* Tareas: las de la maqueta, con fechas de esta semana */
@@ -164,8 +168,9 @@ function crearEjemplo() {
   [['En el menú de la semana, cuando el texto es muy largo se corta en la tarjeta de Inicio', 'menu', PI, 0, 'p'], ['Poder cambiar el orden de las plantas arrastrando', 'plantas', PR, 1, 'p'], ['Al añadir un gasto desde Inicio, que recuerde quién pagó la última vez', 'gastos', PI, 2, 'p'], ['El candado de las tareas privadas', 'tareas', PI, 20, 'h']].forEach(f => pon('feedback', id('fb'), { texto: f[0], sec: f[1], adj: [], por: f[2], creado: ahora - f[3] * 86400000, estado: f[4] }));
   /* 0.2.1 · Actividad: unos cambios de Ru para probar «Deshacer» y «Rehacer» */
   pon('notas', 'nota-ejemplo-borrada', { titulo: 'Lista de la ferretería', emoji: '', html: '<p>Tacos, tornillos y una bombilla E27</p>', texto: 'Tacos, tornillos y una bombilla E27', color: COL[2], editada: ahora - 3 * 86400000, por: PR, fijada: false, _b: 1 });
-  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000, desh: 0, ant: { para: PR }, nue: { para: 'todos' } });
-  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000, desh: 0 });
+  pon('actividad', 'a-ejemplo-1', { q: PR, col: 'tareas', ref: 'tarea-ejemplo-0002', acc: 'c', txt: 'Recoger pila al lavavajillas', cuando: ahora - 2 * 3600000 });
+  actLocPoner('a-ejemplo-1', { ant: { para: PR }, nue: { para: 'todos' } });
+  pon('actividad', 'a-ejemplo-2', { q: PR, col: 'notas', ref: 'nota-ejemplo-borrada', acc: 'b', txt: 'Lista de la ferretería', cuando: ahora - 26 * 3600000 });
   return recs;
 }
 
@@ -186,6 +191,7 @@ async function cargarPrueba() {
 }
 /* Guardar también la marca de los datos de ejemplo */
 function guardarLocal(ya) {
+  if (EN_CASA) return guardarLocalReal(ya);
   if (!RN_CARGADO) return;
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: 0, sid: 'prueba', ejemploV: DATOS_V }); };

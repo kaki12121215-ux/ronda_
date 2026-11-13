@@ -85,7 +85,7 @@ ACC.rnVaciarLista = el => { cerrarHoja(); const hs = lista('compra').filter(x =>
 ACC.marcar = el => {
   const x = dato('compra', el.dataset.id); if (!x) return;
   const h = !x.hecho; const f = el.closest('.rn-it'); if (f) f.classList.toggle('rn-dn', h);
-  cambiar('compra', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0, veces: h ? (x.veces || 1) + 1 : x.veces });
+  cambiar('compra', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
   setTimeout(() => Nav.refrescar(true), 260);
 };
 

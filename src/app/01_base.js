@@ -1,5 +1,10 @@
 /* ============================ BASE ============================ */
-const VERSION = '0.2.1';  /* prueba del diseño nuevo */
+const VERSION = '0.3.0';  /* prueba del diseño nuevo */
+/* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
+   Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
+const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
+const EN_CASA = MODO === 'casa';
+const PREF_LS = EN_CASA ? 'rondaPC:' : 'rondaP:';
 const MIN_SCRIPT = '1.4.0';
 const COL = ['#F0674B', '#F2B824', '#A6C93A', '#2E8B57', '#2BB5B0', '#3C78C8', '#9B86E0', '#EE8AA8'];
 const NOMCOL = ['Coral', 'Limón', 'Lima', 'Verde', 'Turquesa', 'Azul', 'Lavanda', 'Rosa'];
@@ -52,7 +57,7 @@ const DB = {
       const fin = m => { if (!hecho) { hecho = true; this.modo = m; ok(); } };
       setTimeout(() => fin(this.lsOk() ? 'local' : 'memoria'), 2500);
       try {
-        const r = indexedDB.open('ronda_prueba', 1);
+        const r = indexedDB.open(EN_CASA ? 'ronda_prueba_casa' : 'ronda_prueba', 1);
         r.onupgradeneeded = () => r.result.createObjectStore('kv');
         r.onsuccess = () => { this.db = r.result; fin('idb'); };
         r.onerror = () => fin(this.lsOk() ? 'local' : 'memoria');
@@ -69,7 +74,7 @@ const DB = {
     if (k in this.mem) return this.mem[k];
     try {
       if (this.modo === 'idb') return await this.tx('readonly', s => s.get(k));
-      if (this.modo === 'local') { const v = localStorage.getItem('rondaP:' + k); return v ? JSON.parse(v) : undefined; }
+      if (this.modo === 'local') { const v = localStorage.getItem(PREF_LS + k); return v ? JSON.parse(v) : undefined; }
     } catch (e) { anotar('leer ' + k, e); }
     return undefined;
   },
@@ -77,14 +82,14 @@ const DB = {
     this.mem[k] = v;
     try {
       if (this.modo === 'idb') await this.tx('readwrite', s => s.put(v, k));
-      else if (this.modo === 'local') localStorage.setItem('rondaP:' + k, JSON.stringify(v));
+      else if (this.modo === 'local') localStorage.setItem(PREF_LS + k, JSON.stringify(v));
     } catch (e) { anotar('guardar ' + k, e); }
   },
   async del(k) {
     delete this.mem[k];
     try {
       if (this.modo === 'idb') await this.tx('readwrite', s => s.delete(k));
-      else if (this.modo === 'local') localStorage.removeItem('rondaP:' + k);
+      else if (this.modo === 'local') localStorage.removeItem(PREF_LS + k);
     } catch (e) { anotar('borrar ' + k, e); }
   }
 };
@@ -102,7 +107,7 @@ const S = {
 };
 
 let guardarT = null;
-function guardarLocal(ya) {
+function guardarLocalReal(ya) {
   clearTimeout(guardarT);
   const f = () => { DB.set('datos', { recs: S.recs, seq: S.seq, sid: S.sid }); DB.set('cola', S.cola); };
   if (ya) f(); else guardarT = setTimeout(f, 250);
@@ -111,7 +116,7 @@ function guardarLocal(ya) {
 /* ---------- llamadas al script */
 function ErrR(code, msg) { const e = new Error(msg); e.code = code; e.ronda = true; return e; }
 
-async function api(a, extra, opts) {
+async function apiReal(a, extra, opts) {
   opts = opts || {};
   const url = opts.url || (S.cfg && S.cfg.url);
   if (!url) throw ErrR('config', 'Este móvil no está conectado a ningún espacio.');

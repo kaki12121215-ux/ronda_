@@ -18,10 +18,11 @@ function rnGrupoDe(x) {
   if (!x.fecha) return ['z', 'Sin fecha'];
   if (x.fecha < h) return ['a', 'Atrasadas'];
   const d = deISO(x.fecha), dif = Math.round((d - hoy0()) / 86400000);
-  if (dif === 0) return [x.fecha, 'Hoy, ' + DIAS[d.getDay()]];
-  if (dif === 1) return [x.fecha, 'Mañana, ' + DIAS[d.getDay()]];
-  if (dif < 7) return [x.fecha, DIAS_CAP[d.getDay()]];
-  return [x.fecha, DIAS_CAP[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()]];
+  /* 0.3.0: con la fecha entera */
+  const larga = DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+  if (dif === 0) return [x.fecha, 'Hoy, ' + larga];
+  if (dif === 1) return [x.fecha, 'Mañana, ' + larga];
+  return [x.fecha, cap(larga)];
 }
 /* La nota gris debajo del título */
 function rnNotaTarea(x, f) {
@@ -29,8 +30,7 @@ function rnNotaTarea(x, f) {
   if (x.hecho) return 'Hecha por ' + esc(nombreDe(x.hechoPor) || 'alguien') + (x.hechoEn ? ', ' + rnDiaTexto(isoDia(new Date(x.hechoEn)), true) : '');
   if (x.fecha && x.fecha < h) { const d = deISO(x.fecha); return 'Era ' + (Math.round((hoy0() - d) / 86400000) < 7 ? 'el ' + DIAS[d.getDay()] + ' ' + d.getDate() : 'el ' + d.getDate() + ' de ' + MESES[d.getMonth()]); }
   const p = [];
-  if (x.para === 'todos') p.push('De todos');
-  else if (x.para && x.para !== S.cfg.persona) p.push('De ' + esc(nombreDe(x.para)));
+  /* 0.3.0: de quién es va a la derecha (su foto, o «Todos») */
   if (x.repite && x.repite.cada) p.push(textoRepe(x.repite));
   if (x.limite) p.push('Límite: ' + rnDiaTexto(x.limite, true));
   return p.join(' · ');
@@ -39,7 +39,12 @@ function rnFilaTarea(x, f) {
   const atras = !x.hecho && x.fecha && x.fecha < hoyISO(), nota = rnNotaTarea(x, f);
   return '<div class="rn-rw rn-it' + (x.hecho ? ' rn-dn' : '') + '" data-id="' + x.id + '" data-lp="rnMenuTarea">' + rnCk(x.hecho, atras, 'rnHacer', x.id) +
     '<button class="rn-rwt" data-a="rnVerTarea" data-id="' + x.id + '"><span class="rn-t">' + esc(x.titulo) + rnCandado(x) + '</span>' + (nota ? '<span class="rn-n' + (atras ? ' rn-rojo' : '') + '">' + nota + '</span>' : '') + '</button>' +
-    (x.hora && !x.hecho ? '<span class="rn-hr">' + esc(x.hora) + '</span>' : '') + '</div>';
+    (x.hora && !x.hecho ? '<span class="rn-hr">' + esc(x.hora) + '</span>' : '') + rnDeQuien(x) + '</div>';
+}
+/* A la derecha: la foto de quién es la tarea, o «Todos» */
+function rnDeQuien(x) {
+  if (x.para === 'todos' || !x.para) return '<span class="rn-q rn-todos">Todos</span>';
+  const p = dato('personas', x.para); return p ? '<span class="rn-dq" title="' + esc(p.nombre) + '">' + rnAvFoto(p, 26) + '</span>' : '';
 }
 /* Filtro: por a quién está asignada. Las de «Todos» salen en todos los filtros. */
 function rnFiltrar(l, f) {
@@ -115,11 +120,11 @@ ACC.rnHacer = (el, ev) => {
   const h = !x.hecho;
   el.classList.toggle('rn-on', h); el.classList.remove('rn-atr');
   const fila = el.closest('.rn-it'); if (fila) fila.classList.toggle('rn-dn', h);
-  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0 });
-  setTimeout(() => {
-    Nav.refrescar(true);
-    if (h) toast('«' + x.titulo + '» hecha', 'Deshacer', () => { cambiar('tareas', x.id, { hecho: false, hechoPor: '', hechoEn: 0 }); Nav.refrescar(true); }, 'hecho');
-  }, 420);
+  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
+  /* 0.3.0 (ficha 4): 700 ms para ver qué se ha marcado; luego la fila se recoge (340 ms) y se reordena */
+  if (h) toast('«' + x.titulo + '» hecha', 'Deshacer', () => { cambiar('tareas', x.id, { hecho: false, hechoPor: '' }); Nav.refrescar(true); }, 'hecho');
+  setTimeout(() => { if (h && fila && !REDUCIR) fila.classList.add('rn-recoge'); }, 700);
+  setTimeout(() => Nav.refrescar(true), h ? (REDUCIR ? 700 : 1040) : 300);
 };
 
 /* ---------- Ver tarea (tipo 03) ---------- */
@@ -148,9 +153,9 @@ ACC.rnHacerVer = el => {
   const x = dato('tareas', el.dataset.id); if (!x) return;
   if (!x.hecho && x.repite && x.repite.cada) { ACC.rnHacer(el); setTimeout(() => Nav.atras(), 450); return; }
   const h = !x.hecho;
-  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: h ? Date.now() : 0 });
+  cambiar('tareas', x.id, { hecho: h, hechoPor: h ? S.cfg.persona : '', hechoEn: Date.now() });
   Nav.atras();
-  toast('«' + x.titulo + '» ' + (h ? 'hecha' : 'pendiente otra vez'), 'Deshacer', () => { cambiar('tareas', x.id, { hecho: !h, hechoPor: !h ? S.cfg.persona : '', hechoEn: !h ? Date.now() : 0 }); Nav.refrescar(true); }, 'hecho');
+  toast('«' + x.titulo + '» ' + (h ? 'hecha' : 'pendiente otra vez'), 'Deshacer', () => { cambiar('tareas', x.id, { hecho: !h, hechoPor: !h ? S.cfg.persona : '', hechoEn: Date.now() }); Nav.refrescar(true); }, 'hecho');
 };
 
 /* ---------- Mantener pulsada una tarea: sus opciones (tipo 05) ---------- */
@@ -253,9 +258,15 @@ ACC.rnGuardarTarea = () => {
   const t = RN_T, titulo = cap(String(t.titulo || '').trim());
   if (!titulo) { const i = $('#rnTit'); if (i) i.focus(); return toast('Escribe qué hay que hacer.'); }
   const id = t.id || 'tarea-' + uid();
-  const campos = { titulo: titulo, para: t.solo ? S.cfg.persona : (t.para || S.cfg.persona), fecha: t.fecha || '', hora: t.hora || '', repite: t.repite && t.repite.cada ? t.repite : null, aviso: t.aviso || '', cal: false, solo: t.solo ? S.cfg.persona : '', limite: t.limite || '', notas: t.notas || '' };
+  const campos = { titulo: titulo, para: t.solo ? S.cfg.persona : (t.para || S.cfg.persona), fecha: t.fecha || '', hora: t.hora || '', repite: t.repite && t.repite.cada ? t.repite : null, aviso: '', cal: false, solo: t.solo ? S.cfg.persona : '', limite: t.limite || '', notas: t.notas || '' };
+  /* 0.3.0: igual que la app de hoy. Con aviso va al calendario de la casa (necesita fecha); «Solo para mí», nunca. */
+  const conAviso = !t.solo && t.aviso !== '' && t.aviso != null;
+  if (conAviso && !campos.fecha) return toast('Para avisarte, ponle fecha.');
+  campos.cal = conAviso; campos.aviso = conAviso ? String(t.aviso) : '';
+  const antesCal = t.id ? (dato('tareas', t.id) || {}).cal : false;
   if (!t.id) Object.assign(campos, { hecho: false, creadoPor: S.cfg.persona, orden: Date.now() });
   cambiar('tareas', id, campos);
+  if (campos.cal || antesCal) { try { marcarCal('tareas', id); } catch (e) { anotar('calendario', e); } }
   cerrarHoja();
   Nav.refrescar(true);
   toast(t.id ? 'Tarea cambiada' : 'Tarea guardada', t.id ? null : 'Deshacer', () => { cambiar('tareas', id, { _b: 1 }); Nav.refrescar(true); }, 'hecho');

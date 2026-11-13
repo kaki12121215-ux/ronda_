@@ -14,6 +14,8 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
     for (const osc of [false, true]) {
       const m = osc ? 'oscuro' : 'claro';
       const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: osc ? 'dark' : 'light', hasTouch: true, isMobile: true, recordVideo: { dir: C + 'video_' + m, size: { width: 390, height: 844 } } });
+      /* 0.3.0: ya elegido «Probar con datos de ejemplo» (la bienvenida la prueba test/prueba4.js) */
+      await ctx.addInitScript(() => { try { localStorage.setItem('rondaP-modo', 'ejemplo'); } catch (e) { } });
       const p = await ctx.newPage(); const errs = [];
       p.on('pageerror', e => errs.push(e.message)); p.on('console', x => { if (x.type() === 'error') errs.push(x.text()); });
       const ev = (f, a) => p.evaluate(f, a);
@@ -35,29 +37,39 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
       await p.reload(); await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 });
       const corta = await ev(() => window.RN_ARR_MS);
       comprueba(corta > 500 && corta < 900, 'las demás veces, la corta (' + corta + ' ms; la página entera, ' + (Date.now() - t1) + ' ms)');
-      /* La animación termina con el logo: los ocho puntos en su sitio, dentro del círculo y centrados */
+      /* 0.3.0 · opción A: termina en «R◯nda». La palabra centrada en la pantalla física y el anillo de 8 bolas en el sitio de la «o» */
       await p.reload(); await espera(700);
-      const logo = await ev(() => { const a = document.querySelector('#arranque'); if (!a) return null; const c = a.querySelector('.rn-arr-c').getBoundingClientRect(); const bs = [...a.querySelectorAll('.rn-arr-s circle')].filter(x => !x.getAttribute('opacity')).map(x => x.getBoundingClientRect()); return { c: [c.left, c.top, c.width, c.height], n: bs.length, dentro: bs.every(r => r.left >= c.left && r.right <= c.right && r.top >= c.top && r.bottom <= c.bottom), centro: Math.abs(c.left + c.width / 2 - innerWidth / 2) < 1.5, redondas: bs.every(r => Math.abs(r.width - r.height) < 0.5) }; });
-      comprueba(logo && logo.n === 8 && logo.dentro && logo.centro && logo.redondas, 'el logo del arranque: 8 bolas redondas dentro del círculo, centrado ' + JSON.stringify(logo));
+      const logo = await ev(() => {
+        const a = document.querySelector('#arranque'); if (!a) return null;
+        const sv = a.querySelector('.rn-pal'), r = sv.getBoundingClientRect(), P0 = window.RONDA.RN_PAL;
+        const bs = [...a.querySelectorAll('.rn-pal-b circle')].map(x => x.getBoundingClientRect());
+        const cx = bs.reduce((t, b) => t + b.left + b.width / 2, 0) / bs.length, cy = bs.reduce((t, b) => t + b.top + b.height / 2, 0) / bs.length;
+        const ox = r.left + (P0.ox - P0.vx) / P0.vw * r.width, oy = r.top + (P0.oy - P0.vy) / P0.vh * r.height;
+        return { n: bs.length, redondas: bs.every(b => Math.abs(b.width - b.height) < 0.6 && Math.abs(b.width - bs[0].width) < 0.6), enLaO: Math.abs(cx - ox) < 1.2 && Math.abs(cy - oy) < 1.2,
+          centro: Math.abs(r.left + r.width / 2 - innerWidth / 2) < 1 && Math.abs(r.top + r.height / 2 - innerHeight / 2) < 1, letras: a.querySelectorAll('.rn-pal-l path').length, canvas: !!a.querySelector('canvas') };
+      });
+      comprueba(logo && logo.n === 8 && logo.redondas && logo.enLaO && logo.centro && logo.letras === 4 && !logo.canvas, 'el arranque termina en «R◯nda»: 8 bolas redondas en la «o», R n d a, centrado y sin canvas ' + JSON.stringify(logo));
       await p.screenshot({ path: C + m + '_arranque_final.png' });
       await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 }); await espera(400);
 
       /* ---------- La barra de abajo no se corta aunque falte algo de pantalla ---------- */
       await ev(() => { document.documentElement.style.setProperty('--abajo', '46px'); });
-      const barra = await ev(() => { const n = document.querySelector('.rn-nv').getBoundingClientRect(), pl = document.querySelector('.rn-plus').getBoundingClientRect(); return n.bottom <= innerHeight && pl.bottom <= innerHeight && n.bottom > innerHeight - 30; });
+      const barra = await ev(() => { const n = document.querySelector('.rn-b5c').getBoundingClientRect(), pl = document.querySelector('.rn-plus5').getBoundingClientRect(); return n.bottom <= innerHeight && pl.bottom <= innerHeight && n.bottom > innerHeight - 30; });
       comprueba(barra, 'la barra y el «+» quedan enteros dentro de la pantalla');
       await p.screenshot({ path: C + m + '_inicio.png' });
 
       /* ---------- Menú: el «+» gris, no desaparece ---------- */
       await toca('.rn-tab[data-id="menu"]'); await espera(500);
-      comprueba(await ev(() => !!document.querySelector('.rn-plus.rn-plus-no') && !document.querySelector('.rn-barra').classList.contains('rn-sin-plus')), 'en Menú el «+» sale gris');
-      await p.locator('.rn-plus').first().tap({ force: true }); await espera(300);
-      comprueba(/toca un día/.test(await aviso()), 'el «+» gris explica qué hacer');
+      /* 0.3.0: el «+» es siempre el mismo gris; en Menú abre «Añadir» */
+      comprueba(await ev(() => !!document.querySelector('.rn-plus5') && !document.querySelector('.rn-plus-no')), 'en Menú el «+» está, en su gris de siempre');
+      await p.locator('.rn-plus5').first().tap(); await espera(500);
+      comprueba(await ev(() => document.querySelectorAll('.rn-hj .rn-sc').length === 6), 'en Menú el «+» abre «Añadir»');
+      await ev(() => window.RONDA.ACC.cerrarHoja ? window.RONDA.ACC.cerrarHoja() : null); await espera(400);
       await p.screenshot({ path: C + m + '_menu.png' });
       /* Compra: el micrófono gris */
-      await toca('.rn-tab[data-id="compra"]'); await espera(500);
+      await ev(() => window.RONDA.Nav.raiz('compra')); await espera(500);
       comprueba(await ev(() => parseFloat(getComputedStyle(document.querySelector('.rn-qmic')).opacity) < .5), 'el micrófono de Compra sale gris');
-      comprueba(await ev(() => !document.querySelector('.rn-plus-no')), 'en Compra el «+» es el normal');
+      comprueba(await ev(() => !document.querySelector('.rn-plus-no') && !!document.querySelector('.rn-plus5')), 'en Compra el «+» es el de siempre');
 
       /* ---------- Selector de emoji ---------- */
       await ev(() => window.RONDA.Nav.ir('hogarAj', {})); await espera(500);
@@ -86,8 +98,10 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
       comprueba(await ev(() => window.RONDA.lista('notas').some(n => n.titulo === 'Lista de la ferretería')), 'deshacer un borrado recupera la nota');
       /* Un cambio nuevo también se puede deshacer */
       await ev(() => { const R = window.RONDA; R.cambiar('tareas', 'tarea-ejemplo-0001', { titulo: 'Llamar al fontanero hoy' }); R.Nav.refrescar(true); }); await espera(300);
-      const nueva = await ev(() => { const a = window.RONDA.lista('actividad').sort((x, y) => y.cuando - x.cuando)[0]; return a.ant && a.ant.titulo === 'Llamar al fontanero' && a.nue.titulo === 'Llamar al fontanero hoy' ? a.id : ''; });
-      comprueba(!!nueva, 'un cambio nuevo guarda cómo estaba antes');
+      /* 0.3.0: «cómo estaba» se guarda solo en el móvil; la línea de la hoja lleva los mismos campos que en la app de hoy */
+      const nueva = await ev(() => { const R = window.RONDA, a = R.lista('actividad').sort((x, y) => y.cuando - x.cuando)[0], l = R.actLoc(a.id) || {}; return l.ant && l.ant.titulo === 'Llamar al fontanero' && l.nue.titulo === 'Llamar al fontanero hoy' ? a.id : ''; });
+      comprueba(!!nueva, 'un cambio nuevo guarda en el móvil cómo estaba antes');
+      comprueba(await ev(() => { const R = window.RONDA; return R.lista('actividad').every(a => !('ant' in a) && !('nue' in a) && !('desh' in a)) && Object.keys(R.S.cola).every(k => !/^actividad/.test(k) || !('ant' in R.S.cola[k].f)); }), 'a la hoja no va ningún campo nuevo en Actividad (ni ant, ni nue, ni desh)');
       await toca('[data-a="actDeshacer"][data-id="' + nueva + '"]'); await espera(300);
       comprueba(await ev(() => window.RONDA.S.recs.tareas['tarea-ejemplo-0001'].f.titulo === 'Llamar al fontanero'), 'y se deshace');
       await p.screenshot({ path: C + m + '_actividad_deshecho.png' });

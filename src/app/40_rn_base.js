@@ -10,7 +10,7 @@ Object.keys(ICONOS_NUEVOS).forEach(k => { ICONOS[k] = ICONOS_NUEVOS[k]; });
 function rnIc(id, s, sw) {
   const o = ICONOS[id];
   if (!o) return '';
-  return '<svg class="rn-ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + o[0] + '</svg>';
+  return '<svg class="rn-ic" data-i="' + id + '" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.9) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + o[0] + '</svg>';
 }
 /* La función antigua «ic» también pinta ya los iconos nuevos (sin puntos) */
 function ic(id, s, ci, color) { return '<i class="ic" style="width:' + (s || 24) + 'px;height:' + (s || 24) + 'px' + (color ? ';color:' + color : '') + '">' + rnIc(id, s || 24) + '</i>'; }
@@ -167,7 +167,9 @@ const rnTitulo = (t, o) => { o = o || {}; return (o.atras ? '<div class="rn-atra
 /* Avatar: la inicial sobre el color de la persona (Iña coral, Ru azul) */
 const RN_COLPER = { '#F0674B': 'coral', '#F2B824': 'amarillo', '#A6C93A': 'lima', '#2E8B57': 'verde', '#2BB5B0': 'turquesa', '#3C78C8': 'azul', '#9B86E0': 'lavanda', '#EE8AA8': 'rosa' };
 const rnKPer = p => RN_COLPER[String((p && p.color) || '').toUpperCase()] || 'azul';
-const rnAv = (p, s) => p ? '<span class="rn-av rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;font-size:' + (s * 0.383).toFixed(1) + 'px">' + esc((p.nombre || '?').charAt(0).toUpperCase()) + '</span>' : '';
+/* 0.3.0: con su foto si la tiene (la de la hoja, igual que en la app de hoy); si no, la inicial en su color */
+const rnAv = (p, s) => { if (!p) return ''; const img = p.foto && typeof imagen === 'function' ? imagen(p.foto) : null; if (img) return '<span class="rn-av rn-av-foto rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;background-image:url(\'' + img + '\')" role="img" aria-label="' + esc(p.nombre || '') + '"></span>'; return '<span class="rn-av rn-k-' + rnKPer(p) + '" style="width:' + s + 'px;height:' + s + 'px;font-size:' + (s * 0.383).toFixed(1) + 'px">' + esc((p.nombre || '?').charAt(0).toUpperCase()) + '</span>'; };
+const rnAvFoto = rnAv;
 /* Casilla redonda: vacía, marcada (fondo b, marca en t) o atrasada (borde rojo) */
 const rnCk = (on, atras, a, id) => '<button class="rn-ck' + (on ? ' rn-on' : '') + (atras ? ' rn-atr' : '') + '" data-a="' + a + '" data-id="' + id + '" aria-label="' + (on ? 'Marcar como pendiente' : 'Marcar como hecha') + '" role="checkbox" aria-checked="' + (on ? 'true' : 'false') + '">' + rnTick + '</button>';
 /* Aro de avance */

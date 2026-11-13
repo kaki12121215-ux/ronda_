@@ -64,7 +64,7 @@ const viejo = acotar(fs.readFileSync(R + '/src/css/viejo_1.7.3.css', 'utf8')).re
 const conCapas = css => css.replace(/:(where|is)\(\.rn-viejo, \.rn-hj\)/g, ':$1(.rn-viejo, .rn-hj, .rn-capas)');
 /* Estilos: los tokens aprobados (sin la clase de ejemplo del final) y el diseño */
 const tokens = fs.readFileSync(R + '/src/css/tokens.css', 'utf8').replace(/\/\* Fondo de una sección \(claro\)[\s\S]*$/, '');
-fs.writeFileSync(R + '/docs/ronda.css', '/* RONDA · prueba ' + version + ' · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */\n' + tokens + '\n/* ---- estructura de la 1.7.3 para las pantallas de dentro (acotada) ---- */\n' + conCapas(viejo) + '\n' + conCapas(fs.readFileSync(R + '/src/css/diseno.css', 'utf8')));
+fs.writeFileSync(R + '/docs/ronda.css', '/* RONDA · prueba ' + version + ' · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */\n' + tokens + '\n/* ---- estructura de la 1.7.3 para las pantallas de dentro (acotada) ---- */\n' + conCapas(viejo) + '\n' + conCapas(fs.readFileSync(R + '/src/css/diseno.css', 'utf8')) + '\n' + conCapas(fs.readFileSync(R + '/src/css/diseno030.css', 'utf8')));
 /* El service worker lleva la versión: así el iPhone sabe que hay una nueva */
 const sw = R + '/docs/sw.js';
 fs.writeFileSync(sw, fs.readFileSync(sw, 'utf8').replace(/const VERSION = '[^']*';/, `const VERSION = 'prueba_ronda_${version}';`));

@@ -26,6 +26,8 @@ const DENTRO = [
     for (const osc of [false, true]) {
       const m = osc ? 'oscuro' : 'claro';
       const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: osc ? 'dark' : 'light', hasTouch: true, isMobile: true });
+      /* 0.3.0: ya elegido «Probar con datos de ejemplo» (la bienvenida la prueba test/prueba4.js) */
+      await ctx.addInitScript(() => { try { localStorage.setItem('rondaP-modo', 'ejemplo'); } catch (e) { } });
       const p = await ctx.newPage(); const errs = [];
       p.on('pageerror', e => errs.push(e.message)); p.on('console', x => { if (x.type() === 'error') errs.push(x.text()); });
       await p.goto('http://localhost:8150/'); await p.waitForSelector('[data-p="inicio"]'); await espera(1200);
@@ -54,7 +56,7 @@ const DENTRO = [
       }
       /* Hoja «Añadir» del «+» de Inicio */
       await p.evaluate(() => window.RONDA.Nav.raiz('inicio')); await espera(600);
-      await p.click('.rn-plus'); await espera(600);
+      await p.click('.rn-plus5'); await espera(600);
       comprueba(await p.evaluate(() => document.querySelectorAll('.rn-hj .rn-sc').length === 6), m + ': el «+» de Inicio abre «Añadir» con 6 opciones');
       await p.screenshot({ path: C + m + '_anadir.png' });
       await p.click('.rn-sc[data-i="0"]'); await espera(900);

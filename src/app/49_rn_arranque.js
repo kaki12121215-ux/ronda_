@@ -31,27 +31,8 @@ function rnColorFondo() {
 }
 const _barra49 = Nav.barra;
 Nav.barra = function () { _barra49.call(this); try { rnColorFondo(); } catch (x) { } };
-async function rnArrancar() {
-  const t0 = performance.now();
-  const ar = $('#arranque');
-  aplicarTema();
-  /* 0.2.1: la animación de la 1.8.0 con el logo nuevo (48_rn_021.js), a la vez que se cargan los datos */
-  const anim = ar ? rnAnimarArranque(ar) : Promise.resolve();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => anotar('sw', e));
-  await cargarPrueba();
-  await anim;
-  Nav.raiz('inicio');
-  /* La app entra con un fundido, sin salto */
-  const capas = [$('#app'), $('#nav')].filter(Boolean); if (!REDUCIR) { capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya')))); setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900); }
-  if (ar) { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 650); }
-}
+/* 0.3.0: rnArrancar está en 52_rn_arranque.js (ejemplo o casa) */
 /* Sin menú del iPhone al mantener pulsado (A2) */
 document.addEventListener('contextmenu', ev => { if (ev.target.closest('.rn-barra,.rn-it,[data-lp]')) ev.preventDefault(); });
 try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema); } catch (e) { }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { aplicarTema(); if (Nav.actual() && !hojaAbierta) Nav.refrescar(); } });
-window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
-rnArrancar().catch(e => {
-  anotar('arranque', e);
-  const a = $('#arranque'); if (a) a.remove();
-  $('#app').innerHTML = '<div class="pg rn-pg rn-aj"><div class="pgc"><div class="rn-tit"><h1>No he podido abrir Ronda</h1></div><p class="rn-txt">' + esc(e.message) + '</p><button class="rn-btnp" onclick="location.reload()">Volver a intentarlo</button></div></div>';
-});
