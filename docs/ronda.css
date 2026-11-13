@@ -1,4 +1,4 @@
-/* RONDA · prueba 0.3.0 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
+/* RONDA · prueba 0.3.1 · se genera con src/build.js a partir de src/css (tokens.css + diseno.css) */
 /* Ronda · diseño nuevo · valores aprobados. Ver 01_GUIA_DE_ESTILO.md.
    Nombres: --c-<color>-<tono>. Tonos: b bloque, f claro, fo muy claro, t tinta, fu fuerte, ico icono sobre blanco.
    --g-<color>-0/1/2 son los tres tonos del degradado de cabecera de cada sección. */
@@ -1939,18 +1939,95 @@ html.rn-sin-trans *, html.rn-sin-trans *::before, html.rn-sin-trans *::after { t
 }
 /* Mientras algo se mueve, sin desenfoque */
 html.rn-moviendo :is(.rn-gl, .rn-aviso, .rn-hj) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-/* Dilo con el traje nuevo */
-.rn-capas .rn-dilo-p { background: var(--cristal-hoja) !important; border-radius: var(--r-hoja) var(--r-hoja) 0 0 !important; font-family: var(--f-texto) !important; color: var(--txt) !important; box-shadow: 0 -10px 30px rgba(43,58,66,.12) !important; }
-.rn-capas .rn-dilo-p :is(h1, h2, h3) { font-family: var(--f-titulo) !important; letter-spacing: -.02em; }
-.rn-capas .rn-dilo-p .btn { height: 48px; border-radius: 999px !important; font-weight: 700; font-family: var(--f-texto); border: 0 !important; }
-.rn-capas .rn-dilo-p .btn.pri { background: #2B3A42 !important; color: #FFFFFE !important; box-shadow: none !important; }
-.rn-capas .rn-dilo-p .btn.sec { background: #FFFFFF !important; color: var(--txt) !important; box-shadow: 0 0 0 1px rgba(43,58,66,.08) !important; }
-[data-tema="oscuro"] .rn-capas .rn-dilo-p .btn.pri { background: #EEF2F4 !important; color: #1B2226 !important; }
-[data-tema="oscuro"] .rn-capas .rn-dilo-p .btn.sec { background: rgba(255,255,255,.09) !important; color: var(--txt) !important; }
-.rn-capas .rn-dilo-p .cap, .rn-capas .rn-dilo-p .mu { color: var(--txt2) !important; }
-.rn-capas .velo { background: var(--velo) !important; }
+/* Dilo (0.3.1): una hoja más, abajo y entera, con el fondo difuminado */
+#capa .rn-dilo-v { position: fixed; inset: 0; background: rgba(15,20,23,.22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; transition: opacity .26s ease-out; }
+#capa .rn-dilo-v.ver { opacity: 1; }
+#capa .rn-dilo-p { position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); max-height: calc(100% - max(env(safe-area-inset-top), 20px) - 24px - var(--kb, 0px)); display: flex; flex-direction: column;
+  background: var(--cristal-hoja); border-radius: var(--r-hoja) var(--r-hoja) 0 0; padding: 10px 20px calc(18px + var(--pie, env(safe-area-inset-bottom))); box-shadow: 0 -10px 30px rgba(43,58,66,.14);
+  transform: translateY(105%); transition: transform .26s var(--e-salir); font-family: var(--f-texto); color: var(--txt); z-index: 2; }
+#capa .rn-dilo-p.ver { transform: none; transition: transform .42s var(--e-muelle); }
+#capa .rn-dilo-p .grab { display: block; width: 38px; height: 5px; border-radius: 3px; background: rgba(43,58,66,.22); margin: 0 auto 6px; flex: none; }
+#capa .rn-dilo-p .dx { position: absolute; right: 12px; top: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+#capa .rn-dilo-p .dring { display: flex; justify-content: center; margin: 14px 0 10px; flex: none; }
+#capa .rn-dilo-p .dring svg { width: 120px; height: 120px; }
+#capa .rn-dilo-p .dcuerpo { flex: 1; overflow-y: auto; min-height: 0; text-align: center; }
+#capa .rn-dilo-p .dbtns { display: flex; gap: 10px; padding-top: 12px; flex: none; }
+#capa .rn-dilo-p .dbtns .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 48px; border-radius: 999px; font-weight: 700; font-size: 13.5px; border: 0; }
+#capa .rn-dilo-p .btn.pri { background: #2B3A42; color: #FFFFFE; }
+#capa .rn-dilo-p .btn.sec { background: #FFFFFF; color: var(--txt); box-shadow: 0 0 0 1px rgba(43,58,66,.08); }
+[data-tema="oscuro"] #capa .rn-dilo-p .btn.pri { background: #EEF2F4; color: #1B2226; }
+[data-tema="oscuro"] #capa .rn-dilo-p .btn.sec { background: rgba(255,255,255,.09); color: var(--txt); }
+[data-tema="oscuro"] #capa .rn-dilo-p .grab { background: rgba(255,255,255,.25); }
+#capa .rn-dilo-p :is(.cap, .mu) { color: var(--txt2); }
+#capa .rn-dilo-p .live { font: 600 19px/1.35 var(--f-titulo); }
+#capa .rn-dilo-p textarea { width: 100%; border: 0; outline: 0; border-radius: 14px; padding: 12px; background: #FFFFFF; box-shadow: 0 0 0 1px rgba(43,58,66,.08); font: 500 15px/1.4 var(--f-texto); color: var(--txt); }
+[data-tema="oscuro"] #capa .rn-dilo-p textarea { background: rgba(255,255,255,.09); }
 /* En oscuro, la flecha de volver y el subtítulo de las neutras se leen bien */
 [data-tema="oscuro"] .rn-aj .rn-atrasb, [data-tema="oscuro"] .rn-aj .rn-sub { color: var(--txt) !important; opacity: 1 !important; }
 .rn-aj .rn-atrasb { color: var(--txt); }
 /* Bienvenida, presentación y «ya no está conectado»: sobre el fondo de Inicio */
 :is([data-p="bienvenida"], [data-p="onb"], [data-p="anulado"]) { background: var(--fondo); }
+
+/* =================== 0.3.1 =================== */
+/* Arranque: el fondo de Inicio desde el primer momento (antes de que cargue la app) y la palabra ya puesta */
+#arranque { background:
+  radial-gradient(60% 40% at 8% 4%, rgba(244,162,188,.75), transparent 70%),
+  radial-gradient(55% 35% at 55% 0%, rgba(255,125,94,.55), transparent 70%),
+  radial-gradient(60% 40% at 92% 6%, rgba(244,198,72,.7), transparent 70%),
+  radial-gradient(55% 35% at 0% 40%, rgba(181,163,244,.35), transparent 70%),
+  radial-gradient(55% 35% at 100% 45%, rgba(74,211,205,.3), transparent 70%),
+  radial-gradient(60% 40% at 15% 75%, rgba(116,171,247,.45), transparent 70%),
+  radial-gradient(60% 40% at 90% 85%, rgba(185,222,74,.45), transparent 70%), #FFFFFF; }
+[data-tema="oscuro"] #arranque { background: #0F1417; }
+html.rn-primera .rn-arr-pre { display: none; }
+.rn-arr-pre .rn-pal-l { fill: var(--txt); }
+/* Agenda: flechas para cambiar de mes junto al nombre */
+.rn-mesf { display: inline-flex; gap: 2px; margin-left: 10px; vertical-align: middle; }
+.rn-mesb { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--t, var(--txt)); background: rgba(255,255,255,.55); }
+[data-tema="oscuro"] .rn-mesb { background: rgba(255,255,255,.10); color: var(--txt); }
+/* Agenda › Semana: los días, con la pieza nueva; el elegido en su color y con su letra visible; hoy, en negrita */
+.rn-viejo .wkrow button { border: 0 !important; background: rgba(255,255,255,.8) !important; box-shadow: 0 0 0 1px rgba(43,58,66,.06); border-radius: 14px; padding: 7px 0; }
+[data-tema="oscuro"] .rn-viejo .wkrow button { background: rgba(255,255,255,.08) !important; box-shadow: none; }
+.rn-viejo .wkrow small { font-size: 11px; font-weight: 600; color: var(--txt2) !important; }
+.rn-viejo .wkrow b { font: 600 17px/1.15 var(--f-titulo); }
+.rn-viejo .wkrow .t b { font-weight: 700; }
+.rn-viejo .wkrow .t:not(.s) { box-shadow: inset 0 0 0 1.5px var(--b) !important; }
+.rn-viejo .wkrow .s { background: var(--b) !important; color: var(--t) !important; box-shadow: none !important; }
+.rn-viejo .wkrow .s small { color: var(--t) !important; opacity: .75; }
+/* Botones fijos abajo (Guardar…): sin la píldora blanca de detrás; un fundido del fondo de la página */
+.rn-viejo .btns { background: none !important; padding-bottom: 0 !important; left: 16px; right: 16px; bottom: calc(16px + var(--pie, env(safe-area-inset-bottom))); }
+.rn-viejo .btns::before { left: -16px; right: -16px; top: -26px; bottom: calc(-16px - var(--pie, env(safe-area-inset-bottom))); background: linear-gradient(to bottom, rgba(255,255,255,0), var(--fondo) 26px) !important; border-radius: 0; box-shadow: none; }
+.rn-aj.rn-viejo .btns::before { background: linear-gradient(to bottom, rgba(247,248,249,0), var(--fondo-ajustes) 26px) !important; }
+.rn-viejo .btns .btn { margin: 0; }
+.pg.con-boton.rn-viejo .pgc { padding-bottom: calc(150px + var(--pie, 0px)); }
+/* Donde no hay barra (pantallas con botones abajo), el aviso va encima de los botones, no encima de «Guardar» */
+body:has(#nav.rn-oculta) .rn-aviso { bottom: calc(16px + 48px + 14px + var(--pie, 0px) + var(--kb, 0px)); }
+/* Campos: siempre Inter (el de «Sección (opcional)» salía con otra letra) */
+:is(.rn-viejo, .rn-hj, .rn-capas) :is(input, textarea, select) { font-family: var(--f-texto) !important; }
+.rn-viejo #lrSec { font-size: 14px !important; font-weight: 500 !important; color: var(--txt) !important; }
+/* Listas que se repiten: la barra de lo hecho, con la pieza nueva */
+.rn-viejo .prog2 { height: 6px !important; border-radius: 3px !important; background: rgba(43,58,66,.08) !important; overflow: hidden; }
+.rn-viejo .prog2 i { display: block; height: 100%; border-radius: 3px; background: var(--b) !important; }
+[data-tema="oscuro"] .rn-viejo .prog2 { background: rgba(255,255,255,.12) !important; }
+/* Código de 4 cifras: números centrados y «He olvidado el código» que se lea */
+.rn-viejo .pinpad button { display: flex !important; align-items: center; justify-content: center; text-align: center; padding: 0 !important; font: 600 28px/1 var(--f-titulo) !important; color: var(--txt) !important; background: rgba(255,255,255,.75) !important; border: 0 !important; box-shadow: 0 0 0 1px rgba(43,58,66,.07); }
+[data-tema="oscuro"] .rn-viejo .pinpad button { background: rgba(255,255,255,.08) !important; box-shadow: none; }
+.rn-viejo .pinpad button:active { transform: scale(.94); background: var(--f) !important; }
+.rn-viejo .pin i { border-color: var(--txt) !important; }
+.rn-viejo .pin i.on { background: var(--b) !important; border-color: var(--b) !important; }
+.rn-viejo [data-a="ir"][data-id="docClave"].btn { color: var(--txt) !important; opacity: 1 !important; }
+/* Notas: el editor con las piezas nuevas */
+.rn-viejo .notatit { font: 700 28px/1.15 var(--f-titulo) !important; letter-spacing: -.02em; color: var(--txt); }
+.rn-viejo .notaed { font: 500 15.5px/1.55 var(--f-texto) !important; color: var(--txt); }
+.rn-viejo .notaed h1 { font: 700 24px/1.2 var(--f-titulo); } .rn-viejo .notaed h2 { font: 700 19.5px/1.25 var(--f-titulo); } .rn-viejo .notaed h3 { font: 700 16px/1.3 var(--f-texto); }
+.rn-viejo .tbar { background: rgba(255,255,255,.94) !important; border-top: 1px solid var(--raya) !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+[data-tema="oscuro"] .rn-viejo .tbar { background: rgba(27,34,39,.94) !important; }
+.rn-viejo .tbar button { color: var(--txt) !important; border-radius: 10px; }
+.rn-viejo .tbar button.on, .rn-viejo .tbar button[aria-pressed="true"] { background: var(--f) !important; color: var(--t) !important; }
+.rn-viejo .hrow button { border: 0 !important; background: rgba(43,58,66,.06) !important; border-radius: 999px !important; font-family: var(--f-titulo) !important; font-weight: 700 !important; }
+[data-tema="oscuro"] .rn-viejo .hrow button { background: rgba(255,255,255,.09) !important; }
+.rn-viejo .notarow .emb { border-radius: 16px; background: rgba(43,58,66,.05) !important; }
+/* Notas con el teclado: la app mide lo que queda a la vista; la barra de formato, justo encima del teclado */
+html.rn-kb-nota #app { top: var(--vvy, 0px); height: var(--vvh, 100%) !important; }
+html.rn-kb-nota .pg.notapg .tbar { padding-bottom: 0 !important; }
+html.rn-kb-nota .pg.notapg .pgc { padding-bottom: 90px; }

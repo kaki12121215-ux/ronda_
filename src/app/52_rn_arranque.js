@@ -40,6 +40,7 @@ function rnAnimarArranque(ar) {
   return new Promise(ok => {
     const larga = rnPrimeraVez();
     try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
+    const pre = !!ar.querySelector('.rn-arr-pre');   /* 0.3.1: la palabra ya estaba puesta en index.html mientras cargaba */
     ar.classList.add('rn-anim', 'rn-anim5');
     ar.innerHTML = rnAurora() + '<div class="rn-arr5">' + rnPalabra(RN_PAL_PX) + '</div>';
     const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l path', ar);
@@ -47,8 +48,8 @@ function rnAnimarArranque(ar) {
     const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9, false).g; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
     if (REDUCIR) { svg.style.opacity = 0; requestAnimationFrame(() => { svg.style.transition = 'opacity .4s'; svg.style.opacity = 1; }); setTimeout(fin, 420); return; }
     const FIN = larga ? 2.75 : 0.56;
-    letras.forEach(l => { l.style.opacity = 0; });
-    if (!larga) { svg.style.opacity = 0; }
+    if (larga || !pre) letras.forEach(l => { l.style.opacity = 0; });
+    if (!larga && !pre) { svg.style.opacity = 0; }
     const t0 = tA = performance.now();
     const paso = now => {
       const t = (now - t0) / 1000;
@@ -57,6 +58,7 @@ function rnAnimarArranque(ar) {
         const d = 1.7 + (i ? 0.1 + i * 0.07 : 0), p = eOC(eCl((t - d) / 0.5));
         l.style.opacity = p.toFixed(3); l.style.transform = 'translateY(' + (-400 * (1 - p)).toFixed(1) + 'px)';
       });
+      else if (pre) { letras.forEach(l => { l.style.opacity = 1; }); }
       else { const p = eCl(t / 0.11); svg.style.opacity = p.toFixed(3); if (t > 0.11) letras.forEach(l => { l.style.opacity = 1; }); else letras.forEach(l => { l.style.opacity = p.toFixed(3); }); }  /* ficha 1: aparece en 110 ms */
       if (t < FIN) requestAnimationFrame(paso); else fin();
     };
@@ -89,6 +91,7 @@ async function rnArrancar() {
   }
   await anim;
   Nav.raiz(destino, destino === 'onb' ? { paso: 0 } : {});
+  RN_ARRANCANDO = false;
   const capas = [$('#app'), $('#nav')].filter(Boolean);
   capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya'))));
   setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900);

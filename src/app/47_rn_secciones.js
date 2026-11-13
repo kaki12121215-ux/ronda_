@@ -151,7 +151,8 @@ P.agenda = {
     const hoy = new Date();
     p.mes = p.mes || isoDia(new Date(hoy.getFullYear(), hoy.getMonth(), 1)); p.dia = p.dia || hoyISO(); p.vista = p.vista || 'mes';
     const m = deISO(p.mes); cargarMes(m);
-    const cab = rnTitulo(cap(MESES[m.getMonth()]), { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: String(m.getFullYear()) }) + rnFiltros([['mes', 'Mes'], ['semana', 'Semana'], ['lista', 'Lista']], p.vista, 'pSet', 'vista');
+    const flechasMes = '<span class="rn-mesf"><button class="rn-mesb" data-a="agMes" data-v="-1" aria-label="Mes anterior">' + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>' + '</button><button class="rn-mesb" data-a="agMes" data-v="1" aria-label="Mes siguiente">' + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' + '</button></span>';
+    const cab = rnTitulo(cap(MESES[m.getMonth()]) + flechasMes, { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: String(m.getFullYear()) }) + rnFiltros([['mes', 'Mes'], ['semana', 'Semana'], ['lista', 'Lista']], p.vista, 'pSet', 'vista');
     if (p.vista !== 'mes') { rnModoViejo(true); try { return cab + rnSinCabecera(P_VIEJO.agenda.html(p, e), true); } catch (x) { return cab; } }
     rnModoViejo(false);
     const ini = new Date(m.getFullYear(), m.getMonth(), 1), n = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate(), h0 = hoyISO();
@@ -286,9 +287,9 @@ P.coche = {
         '<div class="rn-gq rn-gq2"><div class="rn-fld"><small>Kilómetros</small><b>' + esc(c.km || '—') + '</b></div><div class="rn-fld"><small>Último repostaje</small><b>' + esc(c.repostaje || 'Hace 9 días') + '</b></div></div>', 'rn-k-azul');
       const vs = vencimientos(c.id).filter(x => x.fecha);
       if (vs.length) h += rnCd(rnGrupo('Próximas fechas', String(vs.length)) + vs.map(x => { const n = faltan(x.fecha); return rnFila(icoVenc(x.nombre), esc(x.nombre), [n === 1 ? 'Mañana' : '', x.anios ? 'Cada ' + (x.anios === 1 ? 'año' : x.anios + ' años') : '', x.notas].filter(Boolean).map(esc).join(' · ') || (n === null ? '' : cap(textoFaltan(n))), rnTg(rnFechaTag(x.fecha), n !== null && n <= 7 ? 'coral' : 'azul'), 'data-a="cocheFechaVer" data-id="' + x.id + '"'); }).join(''), 'rn-gr rn-k-azul');
-      const docs = lista('documentos').filter(d => d.carpeta === 'coche');
-      h += rnCd(rnGrupo('Papeles del coche', String(docs.length)) + '<button class="rn-rw" data-a="docCarpeta" data-v="coche"><span class="rn-t" style="flex:1">' + (docs.length ? docs.slice(0, 3).map(d => esc(d.nombre)).join(', ') + (docs.length > 3 ? '…' : '') : 'Permiso de circulación, ficha técnica, póliza…') + '</span>' + rnFle + '</button>', 'rn-gr rn-k-azul');
     });
+    const docs = lista('documentos').filter(d => d.carpeta === 'coche');
+    h += rnCd(rnGrupo(cs.length > 1 ? 'Papeles de los coches' : 'Papeles del coche', String(docs.length)) + '<button class="rn-rw" data-a="docCarpeta" data-v="coche"><span class="rn-t" style="flex:1">' + (docs.length ? docs.slice(0, 3).map(d => esc(d.nombre)).join(', ') + (docs.length > 3 ? '…' : '') : 'Permiso de circulación, ficha técnica, póliza…') + '</span>' + rnFle + '</button>', 'rn-gr rn-k-azul');
     return h;
   },
   rnPlus: () => { const c = coches()[0]; if (!c) return ACC.nuevoCoche(); Nav.ir('cocheFecha', { coche: c.id }); }
@@ -301,7 +302,7 @@ P.documentos = {
     const ds = lista('documentos'), cs = CARPETAS.map(c => [c, ds.filter(d => d.carpeta === c[0]).length]);
     const conDocs = cs.filter(x => x[1]);
     let h = rnTitulo('Documentos', { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: ds.length + (ds.length === 1 ? ' archivo' : ' archivos') + (conDocs.length ? ' en ' + conDocs.length + (conDocs.length === 1 ? ' carpeta' : ' carpetas') : '') });
-    h += '<button class="rn-cd rn-gl rn-lock" data-a="' + (docsActivos() ? (DOC.clave ? 'cerrarDocs' : 'ir" data-id="pin') : 'ir" data-id="docClave') + '">' + rnChip('candado', 34) + '<span class="rn-fat"><span class="rn-t rn-b">Cifrados en el móvil</span><span class="rn-n">' + (!docsActivos() ? 'Toca para activarlos con vuestro código de 4 cifras' : DOC.clave ? 'Abiertos · se cierran solos a los 5 minutos' : 'Se abren con vuestro código de 4 cifras') + '</span></span></button>';
+    h += '<button class="rn-cd rn-gl rn-lock" data-a="' + (docsActivos() ? (DOC.clave ? 'cerrarDocs' : 'rnDocsAbrir') : 'ir" data-id="docClave') + '">' + rnChip('candado', 34) + '<span class="rn-fat"><span class="rn-t rn-b">Cifrados en el móvil</span><span class="rn-n">' + (!docsActivos() ? 'Toca para activarlos con vuestro código de 4 cifras' : DOC.clave ? 'Abiertos · se cierran solos a los 5 minutos' : 'Se abren con vuestro código de 4 cifras') + '</span></span></button>';
     if (!docsActivos()) return h + '<div class="rn-vac">' + rnIlu('sin-documentos') + '<h2>Documentos a salvo</h2><p class="rn-txt">DNI, seguros, garantías… cifrados antes de salir del móvil.</p><button class="rn-btnp rn-btnc" data-a="ir" data-id="docClave">Activar los documentos</button></div>';
     const vis = (conDocs.length ? conDocs : cs).slice(0, conDocs.length > 4 ? conDocs.length : 4);
     h += '<div class="rn-fold">' + vis.map(x => '<button class="rn-cd rn-gl rn-fd" data-a="docCarpeta" data-v="' + x[0][0] + '"><span class="rn-fdt">' + rnChip('carpeta', 30) + '<b class="rn-num">' + x[1] + '</b></span><span class="rn-t rn-b">' + esc(x[0][1]) + '</span></button>').join('') + '</div>';

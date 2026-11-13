@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.0 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.1 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.0';  /* prueba del diseño nuevo */
+const VERSION = '0.3.1';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
@@ -7214,7 +7214,8 @@ P.agenda = {
     const hoy = new Date();
     p.mes = p.mes || isoDia(new Date(hoy.getFullYear(), hoy.getMonth(), 1)); p.dia = p.dia || hoyISO(); p.vista = p.vista || 'mes';
     const m = deISO(p.mes); cargarMes(m);
-    const cab = rnTitulo(cap(MESES[m.getMonth()]), { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: String(m.getFullYear()) }) + rnFiltros([['mes', 'Mes'], ['semana', 'Semana'], ['lista', 'Lista']], p.vista, 'pSet', 'vista');
+    const flechasMes = '<span class="rn-mesf"><button class="rn-mesb" data-a="agMes" data-v="-1" aria-label="Mes anterior">' + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>' + '</button><button class="rn-mesb" data-a="agMes" data-v="1" aria-label="Mes siguiente">' + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>' + '</button></span>';
+    const cab = rnTitulo(cap(MESES[m.getMonth()]) + flechasMes, { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: String(m.getFullYear()) }) + rnFiltros([['mes', 'Mes'], ['semana', 'Semana'], ['lista', 'Lista']], p.vista, 'pSet', 'vista');
     if (p.vista !== 'mes') { rnModoViejo(true); try { return cab + rnSinCabecera(P_VIEJO.agenda.html(p, e), true); } catch (x) { return cab; } }
     rnModoViejo(false);
     const ini = new Date(m.getFullYear(), m.getMonth(), 1), n = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate(), h0 = hoyISO();
@@ -7349,9 +7350,9 @@ P.coche = {
         '<div class="rn-gq rn-gq2"><div class="rn-fld"><small>Kilómetros</small><b>' + esc(c.km || '—') + '</b></div><div class="rn-fld"><small>Último repostaje</small><b>' + esc(c.repostaje || 'Hace 9 días') + '</b></div></div>', 'rn-k-azul');
       const vs = vencimientos(c.id).filter(x => x.fecha);
       if (vs.length) h += rnCd(rnGrupo('Próximas fechas', String(vs.length)) + vs.map(x => { const n = faltan(x.fecha); return rnFila(icoVenc(x.nombre), esc(x.nombre), [n === 1 ? 'Mañana' : '', x.anios ? 'Cada ' + (x.anios === 1 ? 'año' : x.anios + ' años') : '', x.notas].filter(Boolean).map(esc).join(' · ') || (n === null ? '' : cap(textoFaltan(n))), rnTg(rnFechaTag(x.fecha), n !== null && n <= 7 ? 'coral' : 'azul'), 'data-a="cocheFechaVer" data-id="' + x.id + '"'); }).join(''), 'rn-gr rn-k-azul');
-      const docs = lista('documentos').filter(d => d.carpeta === 'coche');
-      h += rnCd(rnGrupo('Papeles del coche', String(docs.length)) + '<button class="rn-rw" data-a="docCarpeta" data-v="coche"><span class="rn-t" style="flex:1">' + (docs.length ? docs.slice(0, 3).map(d => esc(d.nombre)).join(', ') + (docs.length > 3 ? '…' : '') : 'Permiso de circulación, ficha técnica, póliza…') + '</span>' + rnFle + '</button>', 'rn-gr rn-k-azul');
     });
+    const docs = lista('documentos').filter(d => d.carpeta === 'coche');
+    h += rnCd(rnGrupo(cs.length > 1 ? 'Papeles de los coches' : 'Papeles del coche', String(docs.length)) + '<button class="rn-rw" data-a="docCarpeta" data-v="coche"><span class="rn-t" style="flex:1">' + (docs.length ? docs.slice(0, 3).map(d => esc(d.nombre)).join(', ') + (docs.length > 3 ? '…' : '') : 'Permiso de circulación, ficha técnica, póliza…') + '</span>' + rnFle + '</button>', 'rn-gr rn-k-azul');
     return h;
   },
   rnPlus: () => { const c = coches()[0]; if (!c) return ACC.nuevoCoche(); Nav.ir('cocheFecha', { coche: c.id }); }
@@ -7364,7 +7365,7 @@ P.documentos = {
     const ds = lista('documentos'), cs = CARPETAS.map(c => [c, ds.filter(d => d.carpeta === c[0]).length]);
     const conDocs = cs.filter(x => x[1]);
     let h = rnTitulo('Documentos', { der: rnRb('buscar', 'rnBuscarEn', 'Buscar'), sub: ds.length + (ds.length === 1 ? ' archivo' : ' archivos') + (conDocs.length ? ' en ' + conDocs.length + (conDocs.length === 1 ? ' carpeta' : ' carpetas') : '') });
-    h += '<button class="rn-cd rn-gl rn-lock" data-a="' + (docsActivos() ? (DOC.clave ? 'cerrarDocs' : 'ir" data-id="pin') : 'ir" data-id="docClave') + '">' + rnChip('candado', 34) + '<span class="rn-fat"><span class="rn-t rn-b">Cifrados en el móvil</span><span class="rn-n">' + (!docsActivos() ? 'Toca para activarlos con vuestro código de 4 cifras' : DOC.clave ? 'Abiertos · se cierran solos a los 5 minutos' : 'Se abren con vuestro código de 4 cifras') + '</span></span></button>';
+    h += '<button class="rn-cd rn-gl rn-lock" data-a="' + (docsActivos() ? (DOC.clave ? 'cerrarDocs' : 'rnDocsAbrir') : 'ir" data-id="docClave') + '">' + rnChip('candado', 34) + '<span class="rn-fat"><span class="rn-t rn-b">Cifrados en el móvil</span><span class="rn-n">' + (!docsActivos() ? 'Toca para activarlos con vuestro código de 4 cifras' : DOC.clave ? 'Abiertos · se cierran solos a los 5 minutos' : 'Se abren con vuestro código de 4 cifras') + '</span></span></button>';
     if (!docsActivos()) return h + '<div class="rn-vac">' + rnIlu('sin-documentos') + '<h2>Documentos a salvo</h2><p class="rn-txt">DNI, seguros, garantías… cifrados antes de salir del móvil.</p><button class="rn-btnp rn-btnc" data-a="ir" data-id="docClave">Activar los documentos</button></div>';
     const vis = (conDocs.length ? conDocs : cs).slice(0, conDocs.length > 4 ? conDocs.length : 4);
     h += '<div class="rn-fold">' + vis.map(x => '<button class="rn-cd rn-gl rn-fd" data-a="docCarpeta" data-v="' + x[0][0] + '"><span class="rn-fdt">' + rnChip('carpeta', 30) + '<b class="rn-num">' + x[1] + '</b></span><span class="rn-t rn-b">' + esc(x[0][1]) + '</span></button>').join('') + '</div>';
@@ -8014,6 +8015,7 @@ function rnAnimarArranque(ar) {
   return new Promise(ok => {
     const larga = rnPrimeraVez();
     try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
+    const pre = !!ar.querySelector('.rn-arr-pre');   /* 0.3.1: la palabra ya estaba puesta en index.html mientras cargaba */
     ar.classList.add('rn-anim', 'rn-anim5');
     ar.innerHTML = rnAurora() + '<div class="rn-arr5">' + rnPalabra(RN_PAL_PX) + '</div>';
     const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l path', ar);
@@ -8021,8 +8023,8 @@ function rnAnimarArranque(ar) {
     const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9, false).g; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
     if (REDUCIR) { svg.style.opacity = 0; requestAnimationFrame(() => { svg.style.transition = 'opacity .4s'; svg.style.opacity = 1; }); setTimeout(fin, 420); return; }
     const FIN = larga ? 2.75 : 0.56;
-    letras.forEach(l => { l.style.opacity = 0; });
-    if (!larga) { svg.style.opacity = 0; }
+    if (larga || !pre) letras.forEach(l => { l.style.opacity = 0; });
+    if (!larga && !pre) { svg.style.opacity = 0; }
     const t0 = tA = performance.now();
     const paso = now => {
       const t = (now - t0) / 1000;
@@ -8031,6 +8033,7 @@ function rnAnimarArranque(ar) {
         const d = 1.7 + (i ? 0.1 + i * 0.07 : 0), p = eOC(eCl((t - d) / 0.5));
         l.style.opacity = p.toFixed(3); l.style.transform = 'translateY(' + (-400 * (1 - p)).toFixed(1) + 'px)';
       });
+      else if (pre) { letras.forEach(l => { l.style.opacity = 1; }); }
       else { const p = eCl(t / 0.11); svg.style.opacity = p.toFixed(3); if (t > 0.11) letras.forEach(l => { l.style.opacity = 1; }); else letras.forEach(l => { l.style.opacity = p.toFixed(3); }); }  /* ficha 1: aparece en 110 ms */
       if (t < FIN) requestAnimationFrame(paso); else fin();
     };
@@ -8063,6 +8066,7 @@ async function rnArrancar() {
   }
   await anim;
   Nav.raiz(destino, destino === 'onb' ? { paso: 0 } : {});
+  RN_ARRANCANDO = false;
   const capas = [$('#app'), $('#nav')].filter(Boolean);
   capas.forEach(c => c.classList.add('rn-entra')); requestAnimationFrame(() => requestAnimationFrame(() => capas.forEach(c => c.classList.add('rn-ya'))));
   setTimeout(() => capas.forEach(c => c.classList.remove('rn-entra', 'rn-ya')), 900);
@@ -8369,7 +8373,7 @@ const _raiz55 = Nav.raiz;
 Nav.raiz = function (id, params) {
   const r = _raiz55.call(this, id, params);
   const e = this.pila[0];
-  if (e && e.el && !REDUCIR) {
+  if (e && e.el && !REDUCIR && !RN_ARRANCANDO) {
     e.el.classList.add('rn-llega');
     $$('.pgc > *', e.el).slice(0, 6).forEach((b, i) => b.style.setProperty('--rn-i', i));
     setTimeout(() => { if (e.el) e.el.classList.remove('rn-llega'); }, 1300);
@@ -8441,8 +8445,8 @@ Nav.atras = function (n) {
 const _diloAbrir55 = Dilo.abrir;
 Dilo.abrir = function (modo) {
   const r = _diloAbrir55.call(this, modo);
-  const c = document.getElementById('rn-capas');
-  if (c && this.el) { c.appendChild(this.velo); c.appendChild(this.el); this.el.classList.add('rn-dilo-p'); }
+  /* 0.3.1: se queda en la capa de arriba (#capa), con su propio estilo; dentro, las piezas de hoy acotadas (.rn-capas) */
+  if (this.el) { this.el.classList.add('rn-capas', 'rn-dilo-p'); this.velo.classList.add('rn-dilo-v'); }
   return r;
 };
 /* Al elegir una sección en la hoja, la celda se resalta 160 ms y luego la hoja baja */
@@ -8454,9 +8458,76 @@ function rnMoviendo(ms) { const r = document.documentElement; r.classList.add('r
 const _hoja55 = abrirHoja;
 abrirHoja = function () { rnMoviendo(480); return _hoja55.apply(this, arguments); };
 
+/* ---- 56_rn_031.js ---- */
+/* ===================== 0.3.1 · arreglos tras probar la 0.3.0 en el iPhone, conectada a la casa =====================
+   1. Documentos cifrados: en un móvil sin documentos, pedir el código daba «g.hasta». Ahora va a «Clave de documentos».
+   2. Listas: un doble toque al crear una lista la creaba dos veces (salía «Maleta» repetida).
+   3. Notas: con el teclado abierto, la nota y la barra de formato se quedan encima del teclado y se ve lo que escribes.
+   4. La barra: la mancha de color ya no se desliza desde Inicio cada vez que se repinta.
+   5. Arranque: sin el rato en blanco; la palabra se ve desde el primer momento y la barra entra a la vez que Inicio. */
+let RN_ARRANCANDO = true;
+
+/* ---------- 1. Documentos cifrados ---------- */
+ACC.rnDocsAbrir = () => pedirClave(() => Nav.refrescar(true));
+const _pin56 = ACC.pinTecla;
+ACC.pinTecla = async el => {
+  const p = Nav.actual().params;
+  if (!p.nuevo && !(await DB.get('docs:' + S.sid))) { p.v = ''; Nav.atras(); setTimeout(() => Nav.ir('docClave', { seguir: p.seguir }), 360); return; }
+  return _pin56(el);
+};
+
+/* ---------- 2. Sin listas dobles por un doble toque ---------- */
+const rnUnaVez = f => { let t = 0; return function () { if (Date.now() - t < 2000) return; t = Date.now(); return f.apply(this, arguments); }; };
+ACC.listaRPlant = rnUnaVez(ACC.listaRPlant);
+ACC.listaRCrear = rnUnaVez(ACC.listaRCrear);
+
+/* ---------- 3. Notas con el teclado: la pantalla mide lo que queda visible y la barra de formato va encima del teclado ---------- */
+(function () {
+  const vv = window.visualViewport; if (!vv) return;
+  const r = document.documentElement;
+  const f = () => {
+    const ae = document.activeElement, ed = !!(ae && (ae.isContentEditable || (/INPUT|TEXTAREA/.test(ae.tagName) && !/range|file|checkbox|radio/.test(ae.type))));
+    const kb = Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop)), a = Nav.actual();
+    const nota = !!(a && a.id === 'nota' && ed && (kb > 80 || vv.height < innerHeight - 80));
+    r.classList.toggle('rn-kb-nota', nota);
+    if (nota) { r.style.setProperty('--vvh', Math.round(vv.height) + 'px'); r.style.setProperty('--vvy', Math.round(vv.offsetTop) + 'px'); }
+    if (ae && ae.isContentEditable) r.classList.toggle('conteclado', kb > 80);
+    if (nota) requestAnimationFrame(rnCursorVisible);
+  };
+  vv.addEventListener('resize', f); vv.addEventListener('scroll', f);
+  document.addEventListener('focusin', () => setTimeout(f, 60)); document.addEventListener('focusout', () => setTimeout(f, 80));
+  document.addEventListener('selectionchange', () => { if (r.classList.contains('rn-kb-nota')) rnCursorVisible(); });
+  document.addEventListener('input', () => { if (r.classList.contains('rn-kb-nota')) rnCursorVisible(); });
+})();
+/* Lo que escribes, siempre a la vista: entre la cabecera y la barra de formato */
+function rnCursorVisible() {
+  const a = Nav.actual(); if (!a || a.id !== 'nota') return;
+  const s = getSelection(); if (!s || !s.rangeCount) return;
+  let rc = null; try { const rs = s.getRangeAt(0).getClientRects(); rc = rs.length ? rs[rs.length - 1] : s.getRangeAt(0).startContainer.parentElement.getBoundingClientRect(); } catch (e) { return; }
+  if (!rc) return;
+  const pg = $('.pgc', a.el), tb = $('.tbar', a.el); if (!pg) return;
+  const pr = pg.getBoundingClientRect(), abajo = (tb ? tb.getBoundingClientRect().top : pr.bottom) - 18, arriba = pr.top + 70;
+  if (rc.bottom > abajo) pg.scrollTop += rc.bottom - abajo; else if (rc.top < arriba) pg.scrollTop -= arriba - rc.top;
+}
+
+/* ---------- 4. La mancha de la barra, sin deslizarse cuando no cambia de pestaña ---------- */
+function rnPildora(n) {
+  const on = $('.rn-tab.rn-on', n), pil = $('.rn-pil', n), c = $('.rn-b5c', n);
+  if (!on || !pil || !c) return;
+  const x = on.offsetLeft, w = on.offsetWidth;
+  const quieta = RN_PILL_X === null || REDUCIR || RN_PILL_X === x || !x;
+  pil.style.transition = 'none';
+  pil.style.width = w + 'px';
+  pil.style.transform = 'translateX(' + (quieta ? x : RN_PILL_X) + 'px)';
+  pil.getBoundingClientRect();
+  pil.style.transition = '';
+  if (!quieta) { on.classList.add('rn-tarde'); requestAnimationFrame(() => { pil.style.transform = 'translateX(' + x + 'px)'; setTimeout(() => on.classList.remove('rn-tarde'), 160); }); }
+  if (x) RN_PILL_X = x;
+}
+
 /* ---- 59_rn_fin.js ---- */
 /* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */
-window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, MODO, EN_CASA, RN_PAL, Sync, Cal, rnAurora, W, PLANTILLAS, fijarInicio, ordenInicio, rnBarra, locLeer, actLoc, rnPalabra, apiReal, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
+window.RONDA = Object.assign(window.RONDA || {}, { rnMedir, S, Nav, ACC, P, DB, VERSION, cambiar, lista, rnSecciones, rnNuevaTarea, PRUEBA, PI, PR, MODO, EN_CASA, RN_PAL, Sync, Cal, rnAurora, Dilo, rnPalBolas, W, PLANTILLAS, fijarInicio, ordenInicio, rnBarra, locLeer, actLoc, rnPalabra, apiReal, saldosDe, reembolsos, hoyISO, ordenAgua, nivelAgua, dato, toast });
 rnArrancar().catch(e => {
   anotar('arranque', e);
   const a = $('#arranque'); if (a) a.remove();

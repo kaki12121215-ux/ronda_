@@ -251,7 +251,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
       comprueba(await ev(p, () => !!document.querySelector('.rn-plus5') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas' && document.querySelector('.rn-tab.rn-on').classList.contains('rn-gris')), 'en Ajustes «Más» va activa en gris y el «+» sigue (abre «Añadir»)');
-      comprueba(await ev(p, () => /prueba 0\.3\.0/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
+      comprueba(await ev(p, () => /prueba 0\.3\.1/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */

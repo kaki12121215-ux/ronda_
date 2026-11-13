@@ -34,7 +34,7 @@ const _raiz55 = Nav.raiz;
 Nav.raiz = function (id, params) {
   const r = _raiz55.call(this, id, params);
   const e = this.pila[0];
-  if (e && e.el && !REDUCIR) {
+  if (e && e.el && !REDUCIR && !RN_ARRANCANDO) {
     e.el.classList.add('rn-llega');
     $$('.pgc > *', e.el).slice(0, 6).forEach((b, i) => b.style.setProperty('--rn-i', i));
     setTimeout(() => { if (e.el) e.el.classList.remove('rn-llega'); }, 1300);
@@ -106,8 +106,8 @@ Nav.atras = function (n) {
 const _diloAbrir55 = Dilo.abrir;
 Dilo.abrir = function (modo) {
   const r = _diloAbrir55.call(this, modo);
-  const c = document.getElementById('rn-capas');
-  if (c && this.el) { c.appendChild(this.velo); c.appendChild(this.el); this.el.classList.add('rn-dilo-p'); }
+  /* 0.3.1: se queda en la capa de arriba (#capa), con su propio estilo; dentro, las piezas de hoy acotadas (.rn-capas) */
+  if (this.el) { this.el.classList.add('rn-capas', 'rn-dilo-p'); this.velo.classList.add('rn-dilo-v'); }
   return r;
 };
 /* Al elegir una sección en la hoja, la celda se resalta 160 ms y luego la hoja baja */
