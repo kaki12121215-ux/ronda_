@@ -49,27 +49,7 @@ ACC.notaBorrar = el => {
    3. Dictado: empieza al levantar el dedo (touchend, que es lo que el iPhone acepta como toque); si falla, el aviso dice
       el motivo que da el iPhone; tocar el anillo vuelve a intentarlo. Con el teclado, los botones quedan encima de él. */
 
-/* ---------- 2. La mancha ---------- */
-let RN_PILL_CLS = '';
-function rnPildora(n) {
-  const on = $('.rn-tab.rn-on', n), pil = $('.rn-pil', n), c = $('.rn-b5c', n), plus = $('.rn-plus5', n);
-  if (!on || !pil || !c) return;
-  const x = on.offsetLeft, w = on.offsetWidth, cls = pil.className;
-  pil.style.transition = 'none'; pil.style.width = w + 'px';
-  const quieta = RN_PILL_X === null || REDUCIR || RN_PILL_X === x || !x;
-  const px = plus ? plus.offsetLeft : -1, cruza = !quieta && px >= 0 && (RN_PILL_X < px) !== (x < px);
-  if (quieta) pil.style.transform = 'translateX(' + x + 'px)';
-  else if (cruza) {
-    /* Se apaga la de antes y aparece la nueva */
-    const g = document.createElement('i'); g.className = (RN_PILL_CLS || cls) + ' rn-pil-sale'; g.style.width = w + 'px'; g.style.transform = 'translateX(' + RN_PILL_X + 'px)'; c.insertBefore(g, pil); setTimeout(() => g.remove(), 200);
-    pil.style.transform = 'translateX(' + x + 'px)'; pil.classList.add('rn-pil-entra'); on.classList.add('rn-tarde'); setTimeout(() => on.classList.remove('rn-tarde'), 90);
-  } else {
-    pil.style.transform = 'translateX(' + RN_PILL_X + 'px)'; pil.getBoundingClientRect(); pil.style.transition = '';
-    on.classList.add('rn-tarde'); requestAnimationFrame(() => { pil.style.transform = 'translateX(' + x + 'px)'; setTimeout(() => on.classList.remove('rn-tarde'), 160); });
-  }
-  if (quieta || cruza) { pil.getBoundingClientRect(); pil.style.transition = ''; }
-  if (x) { RN_PILL_X = x; RN_PILL_CLS = cls; }
-}
+/* ---------- 2. La mancha: en la 0.3.5 vuelve a deslizarse como antes (56_rn_031.js) ---------- */
 
 /* ---------- 3. Dictado ---------- */
 /* Levantar el dedo tras mantener pulsado el «+»: aquí empieza a escuchar */
@@ -87,11 +67,49 @@ Dilo.escribir = function (aviso) {
   RN_DILO.err = '';
   return _diloEscr58.call(this, aviso);
 };
-/* Tocar el anillo: volver a escuchar (un toque de verdad) */
-document.addEventListener('click', ev => { if (Dilo.el && ev.target.closest && ev.target.closest('.rn-dilo-p .dring') && !Dilo.rec && hayVoz() && Dilo.modo !== 'piensa' && Dilo.modo !== 'res') { const a = $('#dTxt'); if (a) { Dilo.texto = a.value.trim(); a.blur(); } Dilo.escuchar(); } }, true);
 /* Con el teclado: el panel ocupa justo lo que se ve (los botones quedan encima del teclado) */
 (function () {
   const vv = window.visualViewport; if (!vv) return;
   const f = () => { const p = Dilo.el; if (!p) return; const kb = innerHeight - vv.height; if (kb > 80) { p.style.top = Math.round(vv.offsetTop) + 'px'; p.style.height = Math.round(vv.height) + 'px'; p.style.bottom = 'auto'; } else { p.style.top = ''; p.style.height = ''; p.style.bottom = ''; } };
   vv.addEventListener('resize', f); vv.addEventListener('scroll', f); document.addEventListener('focusin', () => setTimeout(f, 80)); document.addEventListener('focusout', () => setTimeout(f, 80));
 })();
+
+/* ===================== 0.3.5 =====================
+   1. La mancha de la barra vuelve a deslizarse. Lo que parpadeaba al volver a Inicio era la barra entera (57_rn_032.js).
+   2. Dictado: si el iPhone no lo arranca al soltar, o se corta sin haber oído nada, ya no salta a escribir:
+      se queda en «Toca el anillo y habla». Ese toque es el mismo que en la app de siempre, que funciona siempre.
+   3. Arranque: como la animación de siempre (52_rn_arranque.js). */
+function rnDiloToca(motivo) {
+  const d = Dilo; if (!d.el) return;
+  d.parar(); clearTimeout(RN_DILO.pista); d.modo = 'escucha';
+  d.cuerpo('<p class="live" data-r="live">' + esc(d.texto || '') + '</p><p class="cap">Toca el anillo y habla' + (motivo && !/no-speech|aborted/.test(motivo) ? ' (motivo: ' + esc(motivo) + ')' : '') + '</p>',
+    '<button class="btn sec" data-a="diloEscribir">' + ic('teclado', 20) + 'Escribir</button>' + (d.texto ? '<button class="btn pri" data-a="diloListo">Listo</button>' : '<button class="btn pri" data-a="diloHablar">' + ic('microfono', 20, 4) + 'Hablar</button>'));
+  const r = $('.dring', d.el); if (r) r.classList.add('rn-toca');
+}
+const _diloEsc59 = Dilo.escuchar;
+Dilo.escuchar = function () {
+  this.parar(); clearTimeout(RN_DILO.pista);
+  const r0 = this.el && $('.dring', this.el); if (r0) r0.classList.remove('rn-toca');
+  const r = _diloEsc59.apply(this, arguments), rec = this.rec, yo = this;
+  if (!rec) return r;
+  rec.onerror = ev => {
+    const e = (ev && ev.error) || ''; RN_DILO.err = e;
+    if (yo.rec !== rec) return; yo.rec = null; if (!yo.el) return;
+    if (e === 'not-allowed' || e === 'service-not-allowed') return yo.escribir('Ronda no puede usar el micrófono aquí. Escríbelo o toca el micrófono del teclado.');
+    rnDiloToca(e);
+  };
+  rec.onend = () => { if (yo.rec !== rec) return; yo.rec = null; if (!yo.el || yo.modo !== 'escucha') return; if (yo.texto) yo.ordenar(); else rnDiloToca(RN_DILO.err); };
+  /* Si pasan unos segundos sin que aparezca nada, se dice cómo volver a intentarlo */
+  const t0 = this.texto;
+  RN_DILO.pista = setTimeout(() => { if (yo.el && yo.rec === rec && yo.texto === t0) { const c = $('.cap', yo.el); if (c) c.textContent = '¿No aparece lo que dices? Toca el anillo y habla'; const g = $('.dring', yo.el); if (g) g.classList.add('rn-toca'); } }, 5000);
+  return r;
+};
+/* Tocar el anillo: volver a escuchar (un toque de verdad, como el botón de la app de siempre) */
+document.addEventListener('click', ev => { if (Dilo.el && ev.target.closest && ev.target.closest('.rn-dilo-p .dring') && hayVoz() && Dilo.modo !== 'piensa' && Dilo.modo !== 'res') { const a = $('#dTxt'); if (a) { Dilo.texto = a.value.trim(); a.blur(); } Dilo.escuchar(); } }, true);
+/* Si al levantar el dedo el iPhone no ha dejado empezar, se pide el toque */
+const rnDiloEsperando = () => Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && $('.cap', Dilo.el) && /Suelta/.test($('.cap', Dilo.el).textContent);
+document.addEventListener('touchcancel', () => { if (rnDiloEsperando()) rnDiloToca(); }, true);
+document.addEventListener('pointerup', ev => { if (ev.pointerType === 'touch') setTimeout(() => { if (rnDiloEsperando()) rnDiloToca(); }, 350); }, true);
+/* Al abrir Dilo, 57_rn_032.js devolvía «escuchar» al de la 1.7.3 (y se perdía todo lo de arriba): se vuelve a poner */
+const rnEscFinal = Dilo.escuchar, _diloAbrir59 = Dilo.abrir;
+Dilo.abrir = function () { this.escuchar = rnEscFinal; try { return _diloAbrir59.apply(this, arguments); } finally { this.escuchar = rnEscFinal; } };

@@ -30,15 +30,15 @@ const comprueba = (c, t) => { if (c) { ok++; console.log('  OK   ' + t); } else 
       await espera(600); await p.screenshot({ path: C + m + '_arranque_3800ms.png' });
       await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 });
       const larga = Date.now() - t0;
-      comprueba(larga > 4000 && larga < 7500, 'la primera vez, la animación larga (' + larga + ' ms)');
+      comprueba(larga > 3200 && larga < 7500, 'la primera vez, la misma animación (0.3.5: ya no hay una larga) (' + larga + ' ms)');
       comprueba(await ev(() => !!document.querySelector('[data-p="inicio"]')), 'después entra Inicio');
       /* Las demás veces, la corta */
       const t1 = Date.now();
       await p.reload(); await p.waitForSelector('#arranque', { state: 'detached', timeout: 15000 });
       const corta = await ev(() => window.RN_ARR_MS);
-      comprueba(corta > 500 && corta < 900, 'las demás veces, la corta (' + corta + ' ms; la página entera, ' + (Date.now() - t1) + ' ms)');
+      comprueba(corta > 1250 && corta < 1700, 'la animación dura 1,34 s (' + corta + ' ms; la página entera, ' + (Date.now() - t1) + ' ms)');
       /* 0.3.0 · opción A: termina en «R◯nda». La palabra centrada en la pantalla física y el anillo de 8 bolas en el sitio de la «o» */
-      await p.reload(); await espera(700);
+      await p.reload(); await p.waitForFunction(() => window.RN_ARR_MS > 0 && document.querySelector('#arranque'), null, { timeout: 8000 });
       const logo = await ev(() => {
         const a = document.querySelector('#arranque'); if (!a) return null;
         const sv = a.querySelector('.rn-pal'), r = sv.getBoundingClientRect(), P0 = window.RONDA.RN_PAL;

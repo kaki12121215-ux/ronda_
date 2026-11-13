@@ -1,4 +1,4 @@
-/* RONDA · prueba del diseño nuevo · versión 0.3.4 · se genera con src/build.js a partir de src/app */
+/* RONDA · prueba del diseño nuevo · versión 0.3.5 · se genera con src/build.js a partir de src/app */
 (function () {
 'use strict';
 /* Generado por src/build.js: iconos e ilustraciones dentro del código, para que salgan siempre. */
@@ -28,7 +28,7 @@ const GLOSARIO = [
 
 /* ---- 01_base.js ---- */
 /* ============================ BASE ============================ */
-const VERSION = '0.3.4';  /* prueba del diseño nuevo */
+const VERSION = '0.3.5';  /* prueba del diseño nuevo */
 /* 0.3.0: dos modos. «ejemplo» (datos de mentira, como hasta ahora) o «casa» (la hoja de Google de verdad, con el mismo script).
    Cada modo guarda en su propio almacén del móvil: así los datos de ejemplo nunca se mezclan con los de casa. */
 const MODO = (() => { try { return localStorage.getItem('rondaP-modo') === 'casa' ? 'casa' : 'ejemplo'; } catch (e) { return 'ejemplo'; } })();
@@ -7980,61 +7980,47 @@ ACC.rnBarraTog = el => {
    - La primera vez, la larga: las bolas salen girando en el centro, laten, y el anillo se encoge hasta su sitio en la «o»
      mientras aparecen R, n, d, a. Termina en «R◯nda». Las demás veces, la corta de 0,75 s.
    - Con «Reducir movimiento», solo fundidos. */
-const RN_PAL_TRAZOS = ["<path transform=\"translate(0 0)\" d=\"M111 0H419V521H689C690 521 691 521 692 521L956 0H1286L987 579C1154 656 1253 804 1253 1001C1253 1301 1043 1490 707 1490H111ZM419 768V1234H688C851 1234 952 1143 952 1001C952 859 851 768 689 768Z\"/>","<path transform=\"translate(2470 0)\" d=\"M399 587C399 751 484 824 606 824C729 824 800 749 800 607V0H1094V661C1094 928 949 1078 724 1078C572 1078 465 1010 394 890V1056H104V0H399Z\"/>","<path transform=\"translate(3669 0)\" d=\"M515 -22C654 -22 767 39 828 162H829V0H1119V1490H825V910H824C756 1024 650 1078 513 1078C243 1078 58 853 58 529C58 198 239 -22 515 -22ZM591 218C448 218 355 331 355 529C355 727 448 840 591 840C740 840 839 717 839 529C839 340 740 218 591 218Z\"/>","<path transform=\"translate(4893 0)\" d=\"M427 -18C589 -18 680 46 736 149H740V0H1028V716C1028 942 862 1078 573 1078C283 1078 111 940 98 722H375C382 803 454 859 564 859C672 859 737 805 737 727V720C737 652 669 643 476 624C256 604 64 536 64 298C64 87 216 -18 427 -18ZM509 187C410 187 346 231 346 306C346 390 426 429 527 444C622 459 705 473 739 492V386C739 272 651 187 509 187Z\"/>"];
-const RN_PAL = { vx: 96, vy: -1505, vw: 5840, vh: 1550, ox: 1875.5, oy: -528, cx: 3016, cy: -733, rc: 431, rd: 105 };
+const RN_PAL_TRAZOS = ["<path transform=\"translate(0 0)\" d=\"M111 0H419V521H689C690 521 691 521 692 521L956 0H1286L987 579C1154 656 1253 804 1253 1001C1253 1301 1043 1490 707 1490H111ZM419 768V1234H688C851 1234 952 1143 952 1001C952 859 851 768 689 768Z\"/>","<path transform=\"translate(2770 0)\" d=\"M399 587C399 751 484 824 606 824C729 824 800 749 800 607V0H1094V661C1094 928 949 1078 724 1078C572 1078 465 1010 394 890V1056H104V0H399Z\"/>","<path transform=\"translate(3969 0)\" d=\"M515 -22C654 -22 767 39 828 162H829V0H1119V1490H825V910H824C756 1024 650 1078 513 1078C243 1078 58 853 58 529C58 198 239 -22 515 -22ZM591 218C448 218 355 331 355 529C355 727 448 840 591 840C740 840 839 717 839 529C839 340 740 218 591 218Z\"/>","<path transform=\"translate(5193 0)\" d=\"M427 -18C589 -18 680 46 736 149H740V0H1028V716C1028 942 862 1078 573 1078C283 1078 111 940 98 722H375C382 803 454 859 564 859C672 859 737 805 737 727V720C737 652 669 643 476 624C256 604 64 536 64 298C64 87 216 -18 427 -18ZM509 187C410 187 346 231 346 306C346 390 426 429 527 444C622 459 705 473 739 492V386C739 272 651 187 509 187Z\"/>"];
+/* 0.3.5: el anillo, más grande (casi como la «R»); las letras n, d, a se apartan para hacerle sitio */
+const RN_PAL = { vx: 96, vy: -1505, vw: 6140, vh: 1550, ox: 2080, oy: -628, cx: 3166, cy: -733, rc: 490, rd: 150 };
 const RN_PAL_PX = 76;                                  /* tamaño de letra en pantalla */
 const rnPalAncho = () => (RN_PAL.vw / 2048 * RN_PAL_PX), rnPalAlto = () => (RN_PAL.vh / 2048 * RN_PAL_PX);
 const eCl = x => Math.max(0, Math.min(1, x)), eOC = x => 1 - Math.pow(1 - x, 3), eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 const eOB = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
-/* Las bolas en un momento t. Devuelve también m (0: en el centro y grande; 1: en la «o») */
-function rnPalBolas(t, larga) {
-  const P0 = RN_PAL; let o = '', m = 1, rot;
-  if (larga) { m = eIO(eCl((t - 1.45) / 0.75)); rot = -110 * (1 - eOC(eCl((t - 0.15) / 1.5))); }
-  else rot = -90 * (1 - eOC(eCl(t / 0.52)));                     /* ficha 1: un cuarto de vuelta, 520 ms */
-  const k = (larga ? 2.3 : 1) + (1 - (larga ? 2.3 : 1)) * m;
-  const x = P0.cx + (P0.ox - P0.cx) * m, y = P0.cy + (P0.oy - P0.cy) * m;
+/* 0.3.5 · Las bolas en un momento t, como en la app de siempre: salen de una en una, en el sentido del reloj, desde arriba,
+   cada una creciendo en su sitio; al cerrarse el anillo, un latido que lo recorre. */
+function rnPalBolas(t) {
+  const P0 = RN_PAL; let o = '';
   for (let i = 0; i < 8; i++) {
-    const a = (i * 45 + rot) * Math.PI / 180;
-    if (larga) {
-      const t0 = 0.25 + i * 0.1, p = eCl((t - t0) / 0.55), e = eOB(p);
-      let s = eCl(p * 2.2) * (0.55 + 0.45 * Math.min(1.2, e));
-      const w = eCl((t - 1.15 - i * 0.04) / 0.4); s *= 1 + 0.18 * Math.sin(w * Math.PI) * (1 - m);
-      if (p > 0) o += '<circle cx="' + (P0.rc * e * Math.sin(a)).toFixed(1) + '" cy="' + (-P0.rc * e * Math.cos(a)).toFixed(1) + '" r="' + (P0.rd * Math.max(s, 0)).toFixed(1) + '" fill="' + RN_LOGO[i] + '"/>';
-    } else {
-      o += '<circle cx="' + (P0.rc * Math.sin(a)).toFixed(1) + '" cy="' + (-P0.rc * Math.cos(a)).toFixed(1) + '" r="' + P0.rd + '" fill="' + RN_LOGO[i] + '"/>';
-    }
+    const a = i * 45 * Math.PI / 180, p = eCl((t - 0.14 - i * 0.06) / 0.3);
+    if (p <= 0) continue;
+    const w = eCl((t - 0.88 - i * 0.025) / 0.26), s = eOB(p) * (1 + 0.1 * Math.sin(w * Math.PI));
+    o += '<circle cx="' + (P0.rc * Math.sin(a)).toFixed(1) + '" cy="' + (-P0.rc * Math.cos(a)).toFixed(1) + '" r="' + (P0.rd * s).toFixed(1) + '" fill="' + RN_LOGO[i] + '" opacity="' + eCl(p * 3).toFixed(3) + '"/>';
   }
-  return { g: '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + k.toFixed(4) + ')">' + o + '</g>', m: m };
+  return { g: '<g transform="translate(' + P0.ox + ' ' + P0.oy + ')">' + o + '</g>', m: 1 };
 }
 /* La palabra entera, quieta (sirve también para la bienvenida y la captura) */
 function rnPalabra(px, cls) {
   const P0 = RN_PAL, w = (P0.vw / 2048 * px).toFixed(1), h = (P0.vh / 2048 * px).toFixed(1);
-  return '<svg class="' + (cls || 'rn-pal') + '" width="' + w + '" height="' + h + '" viewBox="' + P0.vx + ' ' + P0.vy + ' ' + P0.vw + ' ' + P0.vh + '" role="img" aria-label="Ronda"><g class="rn-pal-l" transform="scale(1 -1)">' + RN_PAL_TRAZOS.map(x => '<g>' + x + '</g>').join('') + '</g><g class="rn-pal-b">' + rnPalBolas(9, false).g + '</g></svg>';
+  return '<svg class="' + (cls || 'rn-pal') + '" width="' + w + '" height="' + h + '" viewBox="' + P0.vx + ' ' + P0.vy + ' ' + P0.vw + ' ' + P0.vh + '" role="img" aria-label="Ronda"><g class="rn-pal-l" transform="scale(1 -1)">' + RN_PAL_TRAZOS.map(x => '<g>' + x + '</g>').join('') + '</g><g class="rn-pal-b">' + rnPalBolas(9).g + '</g></svg>';
 }
 function rnAnimarArranque(ar) {
   return new Promise(ok => {
-    const larga = rnPrimeraVez();
     try { localStorage.setItem('rondaP-bienvenida', '1'); } catch (e) { }
-    const pre = !!ar.querySelector('.rn-arr-pre');   /* 0.3.1: la palabra ya estaba puesta en index.html mientras cargaba */
     ar.classList.add('rn-anim', 'rn-anim5');
     ar.innerHTML = rnAurora() + '<div class="rn-arr5">' + rnPalabra(RN_PAL_PX) + '</div>';
-    const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l > g', ar);   /* 0.3.2: se mueve el grupo, no el trazo (mover el trazo le quitaba su sitio y las letras se amontonaban) */
+    const svg = $('.rn-pal', ar), bolas = $('.rn-pal-b', ar), letras = $$('.rn-pal-l > g', ar);
     let tA = 0;
-    const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9, false).g; letras.forEach(l => { l.style.opacity = 1; l.style.transform = ''; }); ok(); };
+    const fin = () => { svg.style.opacity = 1; window.RN_ARR_MS = tA ? Math.round(performance.now() - tA) : 0; bolas.innerHTML = rnPalBolas(9).g; letras.forEach(l => { l.style.opacity = 1; }); ok(); };
     if (REDUCIR) { svg.style.opacity = 0; requestAnimationFrame(() => { svg.style.transition = 'opacity .4s'; svg.style.opacity = 1; }); setTimeout(fin, 420); return; }
-    const FIN = larga ? 2.75 : 0.56;
-    if (larga || !pre) letras.forEach(l => { l.style.opacity = 0; });
-    if (!larga && !pre) { svg.style.opacity = 0; }
+    /* Como la de siempre: la «R», y luego n, d, a de una en una mientras las bolas van cerrando el anillo */
+    const FIN = 1.34;
+    letras.forEach(l => { l.style.opacity = 0; }); bolas.innerHTML = '';
     const t0 = tA = performance.now();
     const paso = now => {
       const t = (now - t0) / 1000;
-      const b = rnPalBolas(t, larga); bolas.innerHTML = b.g;
-      if (larga) letras.forEach((l, i) => {
-        const d = 1.7 + (i ? 0.1 + i * 0.07 : 0), p = eOC(eCl((t - d) / 0.5));
-        l.style.opacity = p.toFixed(3); l.style.transform = 'translateY(' + (-400 * (1 - p)).toFixed(1) + 'px)';
-      });
-      else if (pre) { letras.forEach(l => { l.style.opacity = 1; }); }
-      else { const p = eCl(t / 0.11); svg.style.opacity = p.toFixed(3); if (t > 0.11) letras.forEach(l => { l.style.opacity = 1; }); else letras.forEach(l => { l.style.opacity = p.toFixed(3); }); }  /* ficha 1: aparece en 110 ms */
+      bolas.innerHTML = rnPalBolas(t).g;
+      letras.forEach((l, i) => { l.style.opacity = (i ? eCl((t - 0.12 - (i - 1) * 0.1) / 0.22) : eCl(t / 0.16)).toFixed(3); });
       if (t < FIN) requestAnimationFrame(paso); else fin();
     };
     requestAnimationFrame(paso);
@@ -8560,7 +8546,9 @@ function rnSecciones() {
     '<div class="rn-secs">' + RN_ORDEN_SEC.map(k => '<button class="rn-sc rn-k-' + RN_SEC[k][2] + (k === act ? ' rn-on' : '') + '" data-a="rnSecElegir" data-id="' + k + '">' + rnChip(RN_SEC[k][1], 40) + '<span>' + RN_SEC[k][0] + '</span></button>').join('') + '</div>',
     { clase: 'rn-hj-sec rn-hj-mas', alCerrar: () => {
       RN_MAS_ABIERTA = false; r.classList.remove('rn-prof');
-      setTimeout(() => { if (!RN_MAS_ABIERTA) r.classList.remove('rn-mas'); }, 300);
+      /* 0.3.5: la barra deja de estar por encima justo cuando la hoja ya no está (antes, 20 ms antes: la hoja blanca la tapaba un instante y parpadeaba) */
+      const suelta = () => { if (RN_MAS_ABIERTA) return; if (h && h.isConnected) return requestAnimationFrame(suelta); r.classList.remove('rn-mas'); };
+      setTimeout(suelta, 300);
       if (!RN_MAS_ELIGE) Nav.barra();
     } });
   RN_MAS_ABIERTA = true;
@@ -8744,7 +8732,7 @@ async function rnArrancar() {
     org.style.transform = 'translate(calc(-50% + ' + (b.left + b.width / 2 - a.left - a.width / 2).toFixed(1) + 'px), calc(-50% + ' + (b.top + b.height / 2 - a.top - a.height / 2).toFixed(1) + 'px)) scale(' + (b.width / a.width).toFixed(4) + ')';
     setTimeout(() => { pal.style.opacity = ''; ar.remove(); }, 640);
     setTimeout(() => pg.classList.remove('rn-bv-entra'), 1600);
-  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 320); }
+  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 420); }
 }
 
 /* ---- 58_rn_033.js ---- */
@@ -8799,27 +8787,7 @@ ACC.notaBorrar = el => {
    3. Dictado: empieza al levantar el dedo (touchend, que es lo que el iPhone acepta como toque); si falla, el aviso dice
       el motivo que da el iPhone; tocar el anillo vuelve a intentarlo. Con el teclado, los botones quedan encima de él. */
 
-/* ---------- 2. La mancha ---------- */
-let RN_PILL_CLS = '';
-function rnPildora(n) {
-  const on = $('.rn-tab.rn-on', n), pil = $('.rn-pil', n), c = $('.rn-b5c', n), plus = $('.rn-plus5', n);
-  if (!on || !pil || !c) return;
-  const x = on.offsetLeft, w = on.offsetWidth, cls = pil.className;
-  pil.style.transition = 'none'; pil.style.width = w + 'px';
-  const quieta = RN_PILL_X === null || REDUCIR || RN_PILL_X === x || !x;
-  const px = plus ? plus.offsetLeft : -1, cruza = !quieta && px >= 0 && (RN_PILL_X < px) !== (x < px);
-  if (quieta) pil.style.transform = 'translateX(' + x + 'px)';
-  else if (cruza) {
-    /* Se apaga la de antes y aparece la nueva */
-    const g = document.createElement('i'); g.className = (RN_PILL_CLS || cls) + ' rn-pil-sale'; g.style.width = w + 'px'; g.style.transform = 'translateX(' + RN_PILL_X + 'px)'; c.insertBefore(g, pil); setTimeout(() => g.remove(), 200);
-    pil.style.transform = 'translateX(' + x + 'px)'; pil.classList.add('rn-pil-entra'); on.classList.add('rn-tarde'); setTimeout(() => on.classList.remove('rn-tarde'), 90);
-  } else {
-    pil.style.transform = 'translateX(' + RN_PILL_X + 'px)'; pil.getBoundingClientRect(); pil.style.transition = '';
-    on.classList.add('rn-tarde'); requestAnimationFrame(() => { pil.style.transform = 'translateX(' + x + 'px)'; setTimeout(() => on.classList.remove('rn-tarde'), 160); });
-  }
-  if (quieta || cruza) { pil.getBoundingClientRect(); pil.style.transition = ''; }
-  if (x) { RN_PILL_X = x; RN_PILL_CLS = cls; }
-}
+/* ---------- 2. La mancha: en la 0.3.5 vuelve a deslizarse como antes (56_rn_031.js) ---------- */
 
 /* ---------- 3. Dictado ---------- */
 /* Levantar el dedo tras mantener pulsado el «+»: aquí empieza a escuchar */
@@ -8837,14 +8805,52 @@ Dilo.escribir = function (aviso) {
   RN_DILO.err = '';
   return _diloEscr58.call(this, aviso);
 };
-/* Tocar el anillo: volver a escuchar (un toque de verdad) */
-document.addEventListener('click', ev => { if (Dilo.el && ev.target.closest && ev.target.closest('.rn-dilo-p .dring') && !Dilo.rec && hayVoz() && Dilo.modo !== 'piensa' && Dilo.modo !== 'res') { const a = $('#dTxt'); if (a) { Dilo.texto = a.value.trim(); a.blur(); } Dilo.escuchar(); } }, true);
 /* Con el teclado: el panel ocupa justo lo que se ve (los botones quedan encima del teclado) */
 (function () {
   const vv = window.visualViewport; if (!vv) return;
   const f = () => { const p = Dilo.el; if (!p) return; const kb = innerHeight - vv.height; if (kb > 80) { p.style.top = Math.round(vv.offsetTop) + 'px'; p.style.height = Math.round(vv.height) + 'px'; p.style.bottom = 'auto'; } else { p.style.top = ''; p.style.height = ''; p.style.bottom = ''; } };
   vv.addEventListener('resize', f); vv.addEventListener('scroll', f); document.addEventListener('focusin', () => setTimeout(f, 80)); document.addEventListener('focusout', () => setTimeout(f, 80));
 })();
+
+/* ===================== 0.3.5 =====================
+   1. La mancha de la barra vuelve a deslizarse. Lo que parpadeaba al volver a Inicio era la barra entera (57_rn_032.js).
+   2. Dictado: si el iPhone no lo arranca al soltar, o se corta sin haber oído nada, ya no salta a escribir:
+      se queda en «Toca el anillo y habla». Ese toque es el mismo que en la app de siempre, que funciona siempre.
+   3. Arranque: como la animación de siempre (52_rn_arranque.js). */
+function rnDiloToca(motivo) {
+  const d = Dilo; if (!d.el) return;
+  d.parar(); clearTimeout(RN_DILO.pista); d.modo = 'escucha';
+  d.cuerpo('<p class="live" data-r="live">' + esc(d.texto || '') + '</p><p class="cap">Toca el anillo y habla' + (motivo && !/no-speech|aborted/.test(motivo) ? ' (motivo: ' + esc(motivo) + ')' : '') + '</p>',
+    '<button class="btn sec" data-a="diloEscribir">' + ic('teclado', 20) + 'Escribir</button>' + (d.texto ? '<button class="btn pri" data-a="diloListo">Listo</button>' : '<button class="btn pri" data-a="diloHablar">' + ic('microfono', 20, 4) + 'Hablar</button>'));
+  const r = $('.dring', d.el); if (r) r.classList.add('rn-toca');
+}
+const _diloEsc59 = Dilo.escuchar;
+Dilo.escuchar = function () {
+  this.parar(); clearTimeout(RN_DILO.pista);
+  const r0 = this.el && $('.dring', this.el); if (r0) r0.classList.remove('rn-toca');
+  const r = _diloEsc59.apply(this, arguments), rec = this.rec, yo = this;
+  if (!rec) return r;
+  rec.onerror = ev => {
+    const e = (ev && ev.error) || ''; RN_DILO.err = e;
+    if (yo.rec !== rec) return; yo.rec = null; if (!yo.el) return;
+    if (e === 'not-allowed' || e === 'service-not-allowed') return yo.escribir('Ronda no puede usar el micrófono aquí. Escríbelo o toca el micrófono del teclado.');
+    rnDiloToca(e);
+  };
+  rec.onend = () => { if (yo.rec !== rec) return; yo.rec = null; if (!yo.el || yo.modo !== 'escucha') return; if (yo.texto) yo.ordenar(); else rnDiloToca(RN_DILO.err); };
+  /* Si pasan unos segundos sin que aparezca nada, se dice cómo volver a intentarlo */
+  const t0 = this.texto;
+  RN_DILO.pista = setTimeout(() => { if (yo.el && yo.rec === rec && yo.texto === t0) { const c = $('.cap', yo.el); if (c) c.textContent = '¿No aparece lo que dices? Toca el anillo y habla'; const g = $('.dring', yo.el); if (g) g.classList.add('rn-toca'); } }, 5000);
+  return r;
+};
+/* Tocar el anillo: volver a escuchar (un toque de verdad, como el botón de la app de siempre) */
+document.addEventListener('click', ev => { if (Dilo.el && ev.target.closest && ev.target.closest('.rn-dilo-p .dring') && hayVoz() && Dilo.modo !== 'piensa' && Dilo.modo !== 'res') { const a = $('#dTxt'); if (a) { Dilo.texto = a.value.trim(); a.blur(); } Dilo.escuchar(); } }, true);
+/* Si al levantar el dedo el iPhone no ha dejado empezar, se pide el toque */
+const rnDiloEsperando = () => Dilo.el && Dilo.modo === 'escucha' && !Dilo.rec && $('.cap', Dilo.el) && /Suelta/.test($('.cap', Dilo.el).textContent);
+document.addEventListener('touchcancel', () => { if (rnDiloEsperando()) rnDiloToca(); }, true);
+document.addEventListener('pointerup', ev => { if (ev.pointerType === 'touch') setTimeout(() => { if (rnDiloEsperando()) rnDiloToca(); }, 350); }, true);
+/* Al abrir Dilo, 57_rn_032.js devolvía «escuchar» al de la 1.7.3 (y se perdía todo lo de arriba): se vuelve a poner */
+const rnEscFinal = Dilo.escuchar, _diloAbrir59 = Dilo.abrir;
+Dilo.abrir = function () { this.escuchar = rnEscFinal; try { return _diloAbrir59.apply(this, arguments); } finally { this.escuchar = rnEscFinal; } };
 
 /* ---- 59_rn_fin.js ---- */
 /* ===================== 0.3.0 · lo último: exportar para las pruebas y arrancar ===================== */

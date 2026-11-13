@@ -52,7 +52,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await p.waitForSelector('[data-p="inicio"]');
       await p.waitForFunction(() => !document.getElementById('arranque'), null, { timeout: 3000 }).catch(() => { });
       const tArr = Date.now() - t0;
-      comprueba(tArr < 1900, 'el arranque se quita a tiempo (' + tArr + ' ms desde que se pide la página; la animación dura 0,75 s y luego el fundido)');
+      comprueba(tArr < 2600, 'el arranque se quita a tiempo (' + tArr + ' ms desde que se pide la página; la animación dura 1,34 s y luego el fundido)');
       comprueba(await ev(p, () => document.documentElement.dataset.tema) === m, 'el tema sigue al iPhone (' + m + ')');
       await espera(300);
 
@@ -251,7 +251,7 @@ const aviso = p => ev(p, () => { const t = document.querySelector('.rn-aviso.rn-
       await toca(p, '.rn-sc[data-id="ajustes"]'); await espera(700);
       comprueba(await ev(p, () => window.RONDA.Nav.actual().id === 'ajustes'), 'desde la hoja se abre Ajustes y la hoja se cierra');
       comprueba(await ev(p, () => !!document.querySelector('.rn-plus5') && document.querySelector('.rn-tab.rn-on').dataset.id === 'mas' && document.querySelector('.rn-tab.rn-on').classList.contains('rn-gris')), 'en Ajustes «Más» va activa en gris y el «+» sigue (abre «Añadir»)');
-      comprueba(await ev(p, () => /prueba 0\.3\.4/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
+      comprueba(await ev(p, () => /prueba 0\.3\.5/.test(document.querySelector('.rn-version:not(.rn-medidas)').textContent)), 'la versión se ve en Ajustes: ' + await ev(p, () => document.querySelector('.rn-version:not(.rn-medidas)').textContent));
       comprueba(await ev(p, () => getComputedStyle(document.querySelector('.rn-version')).textAlign === 'center' && getComputedStyle(document.querySelector('.rn-aj .rn-gt')).textAlign !== 'center'), 'solo la línea de la versión va centrada');
       await p.screenshot({ path: C + 'ajustes_' + m + '.png' });
       /* El último elemento no queda debajo de la barra */

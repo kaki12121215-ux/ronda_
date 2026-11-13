@@ -467,3 +467,13 @@ html.conteclado #capa .rn-dilo-p .dring svg { width: 84px; height: 84px; }
 @keyframes rn-pil-sale { to { opacity: 0; scale: .82; } }
 @keyframes rn-pil-entra { from { opacity: 0; scale: .82; } }
 #capa .rn-dilo-p .dring svg { cursor: pointer; }
+
+/* ===================== 0.3.5 ===================== */
+/* Arranque: la palabra se va fundiéndose en su sitio mientras aparece Inicio (como la de siempre) */
+#arranque.rn-anim5.rn-fuera { opacity: 0; transition: opacity .38s ease; }
+#arranque.rn-anim5.rn-fuera .rn-arr5 { transform: translate(-50%, -50%); opacity: 1; transition: none; }
+/* Dilo: el anillo pide un toque */
+#capa .rn-dilo-p .dring { cursor: pointer; }
+#capa .rn-dilo-p .dring.rn-toca { animation: rn-toca 1.6s ease-in-out infinite; }
+@keyframes rn-toca { 0%, 100% { scale: 1; } 50% { scale: 1.06; } }
+@media (prefers-reduced-motion: reduce) { #capa .rn-dilo-p .dring.rn-toca { animation: none; } }

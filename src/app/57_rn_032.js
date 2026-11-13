@@ -33,7 +33,9 @@ function rnSecciones() {
     '<div class="rn-secs">' + RN_ORDEN_SEC.map(k => '<button class="rn-sc rn-k-' + RN_SEC[k][2] + (k === act ? ' rn-on' : '') + '" data-a="rnSecElegir" data-id="' + k + '">' + rnChip(RN_SEC[k][1], 40) + '<span>' + RN_SEC[k][0] + '</span></button>').join('') + '</div>',
     { clase: 'rn-hj-sec rn-hj-mas', alCerrar: () => {
       RN_MAS_ABIERTA = false; r.classList.remove('rn-prof');
-      setTimeout(() => { if (!RN_MAS_ABIERTA) r.classList.remove('rn-mas'); }, 300);
+      /* 0.3.5: la barra deja de estar por encima justo cuando la hoja ya no está (antes, 20 ms antes: la hoja blanca la tapaba un instante y parpadeaba) */
+      const suelta = () => { if (RN_MAS_ABIERTA) return; if (h && h.isConnected) return requestAnimationFrame(suelta); r.classList.remove('rn-mas'); };
+      setTimeout(suelta, 300);
       if (!RN_MAS_ELIGE) Nav.barra();
     } });
   RN_MAS_ABIERTA = true;
@@ -217,5 +219,5 @@ async function rnArrancar() {
     org.style.transform = 'translate(calc(-50% + ' + (b.left + b.width / 2 - a.left - a.width / 2).toFixed(1) + 'px), calc(-50% + ' + (b.top + b.height / 2 - a.top - a.height / 2).toFixed(1) + 'px)) scale(' + (b.width / a.width).toFixed(4) + ')';
     setTimeout(() => { pal.style.opacity = ''; ar.remove(); }, 640);
     setTimeout(() => pg.classList.remove('rn-bv-entra'), 1600);
-  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 320); }
+  } else { ar.classList.add('rn-fuera'); setTimeout(() => ar.remove(), 420); }
 }
